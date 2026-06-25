@@ -534,6 +534,32 @@
                 <a href="#" class="upi-app-btn generic" id="link-generic">
                     Pay via Any UPI App
                 </a>
+
+                <!-- Manual Payment Fallbacks -->
+                <div class="manual-payment-info" style="margin-top: 25px; padding: 15px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; text-align: center;">
+                    <div style="font-size: 0.95rem; color: #feebc8; margin-bottom: 8px; font-weight: bold;">
+                        💡 app-redirect not working? (सिक्योरिटी ब्लॉक एरर आने पर)
+                    </div>
+                    <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 12px; line-height: 1.4;">
+                        If PhonePe/GPay shows a security error, copy the UPI ID below, open your payment app, transfer the money manually, and paste the UTR.
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 1rem; color: #fff; margin-bottom: 10px;">
+                        <span id="manual-upi-id-text">8888817766@ibl</span>
+                        <button onclick="copyManualUpiId()" style="background: var(--accent); color: white; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">Copy ID</button>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--accent-green); display: none; margin-bottom: 12px;" id="upi-copied-alert">✓ UPI ID Copied! / कॉपी हो गया!</div>
+
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button onclick="toggleMobileQr()" type="button" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; width: 100%; font-weight: bold;">
+                            🖼️ Show QR Code for Screenshot / क्यूआर कोड देखें
+                        </button>
+                    </div>
+                    
+                    <div id="mobile-qr-wrapper" style="display: none; margin-top: 15px; padding: 15px; background: white; border-radius: 8px; text-align: center;">
+                        <img id="mobile-qr-image" src="" alt="Scan QR" style="width: 200px; height: 200px; margin: 0 auto; display: block;">
+                        <p style="color: #333; font-size: 0.8rem; margin-top: 8px; font-weight: bold;">Screenshot this QR and Scan in PhonePe / GPay</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Action Button -->
@@ -589,7 +615,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=12.0"></script>
+    <script src="app-core.js?v=13.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
@@ -711,6 +737,12 @@
                 document.getElementById('dynamic-qr-image').src = qrCodeUrl;
             }
 
+            // Populate manual UPI VPA text
+            const manualTextEl = document.getElementById('manual-upi-id-text');
+            if (manualTextEl) {
+                manualTextEl.innerText = upiId;
+            }
+
             // Start Countdown Timer
             startTimer(300); // 5 minutes (300 seconds)
         });
@@ -743,6 +775,35 @@
             // Standard renderers inside app-core
             if (typeof window.renderHeader === 'function') window.renderHeader();
             if (typeof window.renderFooter === 'function') window.renderFooter();
+        }
+
+        // Copy Manual UPI ID Helper
+        function copyManualUpiId() {
+            const text = document.getElementById('manual-upi-id-text').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const alertEl = document.getElementById('upi-copied-alert');
+                alertEl.style.display = 'block';
+                setTimeout(() => { alertEl.style.display = 'none'; }, 2000);
+            }).catch(err => {
+                console.error("Clipboard copy failed:", err);
+                alert("UPI ID: " + text);
+            });
+        }
+
+        // Toggle Mobile QR Code Screenshot Helper
+        function toggleMobileQr() {
+            const wrapper = document.getElementById('mobile-qr-wrapper');
+            if (wrapper.style.display === 'none') {
+                wrapper.style.display = 'block';
+                
+                const settings = getSettings();
+                const cleanAmount = amount.toFixed(2);
+                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
+                document.getElementById('mobile-qr-image').src = qrCodeUrl;
+            } else {
+                wrapper.style.display = 'none';
+            }
         }
 
         // Modal triggers
