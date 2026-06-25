@@ -795,9 +795,9 @@ function dbInit() {
     if (!localStorage.getItem('ikko_settings')) {
         localStorage.setItem('ikko_settings', JSON.stringify({
             phonepeEnabled: true,
-            phonepeMerchantId: 'M23P2N630SNVS',
-            phonepeClientId: 'SU2605131450590093051231',
-            phonepeClientSecret: 'cab34e32-8fb5-4d6d-94be-7bcccc16c8cb',
+            phonepeMerchantId: '8888817766@ibl',
+            phonepeClientId: 'RAVI S DHAKRE',
+            phonepeClientSecret: 'N/A',
             phonepeMode: 'live'
         }));
     }

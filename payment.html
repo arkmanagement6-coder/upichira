@@ -123,6 +123,102 @@
             max-width: 320px;
             line-height: 1.5;
         }
+        
+        /* PhonePe stand styling */
+        .phonepe-qr-card {
+            background-color: #0b0c10;
+            border-radius: 16px;
+            padding: 30px 20px;
+            margin: 25px auto;
+            max-width: 380px;
+            text-align: center;
+            border: 2px solid #5f259f;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        .phonepe-qr-header {
+            margin-bottom: 25px;
+        }
+        .phonepe-qr-logo-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .phonepe-qr-logo-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+        }
+        .phonepe-accepted-badge {
+            background-color: #5f259f;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .phonepe-scan-instruction {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 5px;
+        }
+        .phonepe-qr-image-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            display: inline-block;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .phonepe-qr-image-wrapper img {
+            display: block;
+            width: 200px;
+            height: 200px;
+        }
+        .phonepe-qr-center-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            padding: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .phonepe-qr-center-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .phonepe-qr-payee-name {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: white;
+            text-transform: uppercase;
+            margin-top: 10px;
+            margin-bottom: 25px;
+        }
+        .phonepe-qr-footer {
+            font-size: 0.72rem;
+            color: #718096;
+            border-top: 1px solid #2d3748;
+            padding-top: 15px;
+            line-height: 1.4;
+        }
         .mobile-apps-container {
             margin: 25px 0;
             display: none; /* Shown dynamically on mobile */
@@ -385,14 +481,31 @@
                 </div>
             </div>
 
-            <!-- Desktop View: QR Code -->
-            <div class="qr-code-box" id="desktop-payment-view">
-                <div class="qr-code-image-wrapper">
-                    <img id="dynamic-qr-image" src="" alt="Scan to Pay">
+            <!-- Desktop View: PhonePe Style Dynamic QR Card -->
+            <div id="desktop-payment-view" style="margin: 25px 0;">
+                <div class="phonepe-qr-card">
+                    <div class="phonepe-qr-header">
+                        <div class="phonepe-qr-logo-wrap">
+                            <img src="Image/phonepe-logo.svg" alt="PhonePe" style="height: 30px; background: white; padding: 2px; border-radius: 6px;">
+                            <span class="phonepe-qr-logo-text">PhonePe</span>
+                        </div>
+                        <div class="phonepe-accepted-badge">ACCEPTED HERE</div>
+                        <div class="phonepe-scan-instruction">Scan & Pay Using PhonePe App</div>
+                    </div>
+                    
+                    <div class="phonepe-qr-image-wrapper">
+                        <img id="dynamic-qr-image" src="" alt="Scan to Pay">
+                        <div class="phonepe-qr-center-logo">
+                            <img src="Image/phonepe-logo.svg" alt="pe" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                    </div>
+                    
+                    <div class="phonepe-qr-payee-name" id="payment-qr-payee">RAVI S DHAKRE</div>
+                    
+                    <div class="phonepe-qr-footer">
+                        © 2026, All rights reserved, PhonePe Ltd (Formerly known as 'PhonePe Private Ltd')
+                    </div>
                 </div>
-                <p class="qr-instruction">
-                    Open GPay, PhonePe, Paytm, BHIM, or any UPI App and <strong>scan the QR code</strong> to pay.
-                </p>
             </div>
 
             <!-- Mobile View: App Launch Buttons -->
@@ -480,8 +593,8 @@
     <script>
         let orderId = '';
         let amount = 0;
-        let upiId = '9300241235@slc';
-        let payeeName = 'Lucky Jat';
+        let upiId = '8888817766@ibl';
+        let payeeName = 'RAVI S DHAKRE';
         let selectedMethod = '';
 
         // Load Order Details
@@ -519,6 +632,7 @@
             document.getElementById('payment-order-id').innerText = orderId;
             document.getElementById('payment-amount').innerText = formatPrice(amount);
             document.getElementById('payment-payee').innerText = payeeName;
+            document.getElementById('payment-qr-payee').innerText = payeeName;
 
             // Generate UPI URIs
             const cleanAmount = amount.toFixed(2);
