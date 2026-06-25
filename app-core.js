@@ -107,6 +107,23 @@ window.trackPurchaseEvent = function(order) {
 
 const INITIAL_PRODUCTS = [
   {
+    "id": "trial_product_1rs",
+    "paymentLink": "https://rzp.io/rzp/tHlmofq",
+    "category": "gadgets",
+    "price": "Rs. 1.00",
+    "badge": "TRIAL",
+    "title": "1 Rs Trial Demo Product",
+    "image": "demo_cake.png",
+    "images": [
+      "demo_cake.png"
+    ],
+    "url": "/products/1-rs-trial-demo-product",
+    "stockStatus": "in-stock",
+    "handle": "1-rs-trial-demo-product",
+    "comparePrice": "Rs. 99.00",
+    "description": "This is a trial product priced at Rs. 1 for testing payments. / यह पेमेंट टेस्टिंग के लिए 1 रुपये का ट्रायल प्रोडक्ट है।"
+  },
+  {
     "id": "8270415000000",
     "paymentLink": "https://rzp.io/rzp/tHlmofq",
     "category": "tablets",
@@ -798,7 +815,8 @@ function dbInit() {
             phonepeMerchantId: '8888817766@ibl',
             phonepeClientId: 'RAVI S DHAKRE',
             phonepeClientSecret: 'N/A',
-            phonepeMode: 'live'
+            phonepeMode: 'live',
+            customQrUrl: ''
         }));
     }
 }
@@ -1224,14 +1242,6 @@ async function syncProductsBackground(forceSync = false) {
         }
 
         let updated = false;
-
-        // Ensure Demo Product is permanently filtered out
-        const originalLength = products.length;
-        products = products.filter(p => String(p.id) !== '8270415000000_demo');
-        if (products.length !== originalLength) {
-            updated = true;
-        }
-
         products = products.map(p => {
             if (!p.paymentLink || p.paymentLink === 'https://razorpay.me/@luckydigitalmedia') {
                 p.paymentLink = 'https://rzp.io/rzp/tHlmofq';
@@ -1381,10 +1391,30 @@ function getOrders() {
     return JSON.parse(localStorage.getItem('ikko_orders'));
 }
 
-function saveOrder(order) {
-    const orders = getOrders();
-    orders.push(order);
+async function saveOrder(order) {
+    dbInit();
+    const orders = JSON.parse(localStorage.getItem('ikko_orders')) || [];
+    const idx = orders.findIndex(o => o.id === order.id);
+    if (idx !== -1) {
+        orders[idx] = order;
+    } else {
+        orders.push(order);
+    }
     localStorage.setItem('ikko_orders', JSON.stringify(orders));
+    
+    // Sync to Firestore if enabled
+    const settings = getSettings();
+    if (settings.firebaseEnabled) {
+        const db = await initFirebase();
+        if (db) {
+            try {
+                await db.collection('orders').doc(order.id).set(cleanUndefinedFields(order));
+                console.log("Order synced to Firestore successfully:", order.id);
+            } catch (e) {
+                console.error("Failed to sync order to Firestore:", e);
+            }
+        }
+    }
 }
 
 // Cart State Management Helpers

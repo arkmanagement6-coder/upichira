@@ -248,8 +248,7 @@
 
                 <div class="settings-card" style="background-color: white; border-radius: 8px; border: 1px solid var(--border-color); padding: 30px; max-width: 600px; margin-top: 20px; box-shadow: var(--shadow-sm);">
                     <form id="store-settings-form" onsubmit="handleSaveSettings(event)">
-                        <!-- SabPaisa Gateway Config -->
-                        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--primary); margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">SabPaisa Payment Gateway</h2>
+
                         
                         <!-- UPI QR Gateway Config -->
                         <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--primary); margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">UPI QR & App Payment Gateway</h2>
@@ -270,6 +269,12 @@
                         <div style="margin-bottom: 20px;">
                             <label for="setting-phonepe-clientid" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; color: var(--primary);">Account Holder Name *</label>
                             <input type="text" id="setting-phonepe-clientid" required placeholder="e.g. Lucky Jat" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem; box-sizing: border-box;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label for="setting-custom-qr-url" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; color: var(--primary);">Custom QR Code Image URL (Optional)</label>
+                            <input type="text" id="setting-custom-qr-url" placeholder="e.g. /Image/my_qr_code.png or https://example.com/qr.png" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem; box-sizing: border-box;">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Leave empty to automatically generate a dynamic, pre-filled QR code matching the order price.</p>
                         </div>
 
                         <div style="margin-bottom: 20px; display: none;">
@@ -465,12 +470,7 @@
                         </div>
                     </div>
 
-                    <div class="form-grid" style="grid-template-columns: 1fr; margin-top: 15px;">
-                        <div class="form-group">
-                            <label for="form-payment-link">Razorpay Payment Link *</label>
-                            <input type="url" id="form-payment-link" required placeholder="https://razorpay.me/@username" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem; box-sizing: border-box;">
-                        </div>
-                    </div>
+                    <input type="hidden" id="form-payment-link" value="https://rzp.io/rzp/tHlmofq">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
@@ -513,6 +513,7 @@
             document.getElementById('setting-phonepe-enabled').checked = !!settings.phonepeEnabled;
             document.getElementById('setting-phonepe-merchantid').value = settings.phonepeMerchantId || '';
             document.getElementById('setting-phonepe-clientid').value = settings.phonepeClientId || '';
+            document.getElementById('setting-custom-qr-url').value = settings.customQrUrl || '';
             document.getElementById('setting-phonepe-clientsecret').value = settings.phonepeClientSecret || '';
             document.getElementById('setting-phonepe-mode').value = settings.phonepeMode || 'live';
 
@@ -535,6 +536,7 @@
             const phonepeEnabled = document.getElementById('setting-phonepe-enabled').checked;
             const phonepeMerchantId = document.getElementById('setting-phonepe-merchantid').value.trim();
             const phonepeClientId = document.getElementById('setting-phonepe-clientid').value.trim();
+            const customQrUrl = document.getElementById('setting-custom-qr-url').value.trim();
             const phonepeClientSecret = document.getElementById('setting-phonepe-clientsecret').value.trim();
             const phonepeMode = document.getElementById('setting-phonepe-mode').value;
 
@@ -558,6 +560,7 @@
                 phonepeClientId,
                 phonepeClientSecret,
                 phonepeMode,
+                customQrUrl,
                 firebaseEnabled,
                 firebaseConfig
             });
@@ -649,7 +652,12 @@
 
                 // Render dynamic status changes
                 let actionsHtml = '';
-                if (o.status === 'pending') {
+                if (o.status === 'pending_verification') {
+                    actionsHtml = `
+                        <button class="btn btn-secondary" onclick="updateOrderStatus('${o.id}', 'pending')" style="background-color: var(--accent); color: white; border: none; margin-right: 5px; padding: 6px 12px;">Approve Payment</button>
+                        <button class="btn btn-danger" onclick="updateOrderStatus('${o.id}', 'cancelled')" style="padding: 6px 12px;">Cancel</button>
+                    `;
+                } else if (o.status === 'pending') {
                     actionsHtml = `
                         <button class="btn btn-secondary" onclick="updateOrderStatus('${o.id}', 'delivered')" style="background-color: var(--accent-green); color: white; border: none; margin-right: 5px; padding: 6px 12px;">Ship & Deliver</button>
                         <button class="btn btn-danger" onclick="updateOrderStatus('${o.id}', 'cancelled')" style="padding: 6px 12px;">Cancel</button>
@@ -677,12 +685,28 @@
             }).join('');
         }
 
-        function updateOrderStatus(orderId, newStatus) {
+        async function updateOrderStatus(orderId, newStatus) {
             const orders = getOrders();
             const orderIndex = orders.findIndex(o => o.id === orderId);
             if (orderIndex !== -1) {
-                orders[orderIndex].status = newStatus;
+                const order = orders[orderIndex];
+                order.status = newStatus;
+                
                 localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                
+                // Sync to Firestore if enabled
+                const settings = getSettings();
+                if (settings.firebaseEnabled) {
+                    const db = await initFirebase();
+                    if (db) {
+                        try {
+                            await db.collection('orders').doc(orderId).update({ status: newStatus });
+                            console.log("Order status synced to Firestore:", orderId, newStatus);
+                        } catch (e) {
+                            console.error("Failed to sync order status to Firestore:", e);
+                        }
+                    }
+                }
                 
                 // Re-render the active tab
                 if (currentAdminTab === 'dash') renderDashboard();
@@ -1140,9 +1164,38 @@
             }
         }
 
+        let ordersListenerUnsubscribe = null;
+
+        async function initRealTimeOrders() {
+            if (window.settingsLoadingPromise) {
+                await window.settingsLoadingPromise;
+            }
+            const settings = getSettings();
+            if (settings.firebaseEnabled) {
+                const db = await initFirebase();
+                if (db) {
+                    console.log("Listening to orders from Firestore in real-time...");
+                    ordersListenerUnsubscribe = db.collection('orders').onSnapshot((snapshot) => {
+                        const firestoreOrders = [];
+                        snapshot.forEach((doc) => {
+                            firestoreOrders.push(doc.data());
+                        });
+                        localStorage.setItem('ikko_orders', JSON.stringify(firestoreOrders));
+                        
+                        // Re-render
+                        if (currentAdminTab === 'dash') renderDashboard();
+                        if (currentAdminTab === 'orders') renderOrders();
+                    }, (error) => {
+                        console.error("Firestore orders subscription error:", error);
+                    });
+                }
+            }
+        }
+
         // Load dashboard stats automatically
         window.addEventListener('load', async () => {
             await renderDashboard();
+            initRealTimeOrders();
         });
 
         // Listen for Firestore background product sync and refresh inventory view

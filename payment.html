@@ -606,7 +606,12 @@
             orderId = urlParams.get('orderId');
             selectedMethod = urlParams.get('method') || 'phonepe';
             
-            // Check dynamic settings passed via URL or fallback to dynamic local settings
+            // Check dynamic settings passed via client-side settings, fallback to URL or defaults
+            const settings = getSettings();
+            if (settings) {
+                upiId = settings.phonepeMerchantId || upiId;
+                payeeName = settings.phonepeClientId || payeeName;
+            }
             upiId = urlParams.get('upi') || upiId;
             payeeName = urlParams.get('name') || payeeName;
 
@@ -701,8 +706,8 @@
                     }
                 }, 1000);
             } else {
-                // Generate QR Code dynamically for Desktop
-                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
+                // Generate QR Code dynamically for Desktop or load custom QR URL
+                const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
                 document.getElementById('dynamic-qr-image').src = qrCodeUrl;
             }
 
@@ -790,19 +795,18 @@
         }
 
         // Complete Order and update Local Storage
-        function completeOrder(utr) {
+        async function completeOrder(utr) {
             try {
                 const orders = getOrders();
                 const orderIdx = orders.findIndex(o => o.id === orderId);
 
                 if (orderIdx !== -1) {
                     const order = orders[orderIdx];
-                    order.status = 'pending'; // Moves status to successful order
+                    order.status = 'pending_verification'; // Awaiting verification by admin
                     order.utr = utr; // Assigns the entered UTR
                     
-                    // Save back
-                    orders[orderIdx] = order;
-                    localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                    // Save back and sync
+                    await saveOrder(order);
                 }
 
                 // Clear customer shopping cart
