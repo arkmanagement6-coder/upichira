@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure UPI Payment Gateway | IKKO DIGITAL</title>
+    <link rel="stylesheet" href="style.css?v=2.4">
+    <style>
+        .payment-wrapper {
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: var(--font-body);
+        }
+        .payment-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            text-align: center;
+        }
+        .gateway-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+        .gateway-logo {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .gateway-logo span {
+            color: var(--accent);
+        }
+        .secure-badge {
+            background-color: #ebf8ff;
+            color: #2b6cb0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .timer-container {
+            background-color: #fffaf0;
+            border: 1px solid #feebc8;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            color: #dd6b20;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .timer-clock {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+        .amount-display-box {
+            background-color: var(--bg-main);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px dashed rgba(0, 0, 0, 0.1);
+        }
+        .amount-display-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .amount-display-value {
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .order-meta-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        .qr-code-box {
+            margin: 25px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .qr-code-image-wrapper {
+            padding: 15px;
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            display: inline-block;
+            position: relative;
+        }
+        .qr-code-image-wrapper img {
+            display: block;
+            width: 220px;
+            height: 220px;
+        }
+        .qr-instruction {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            max-width: 320px;
+            line-height: 1.5;
+        }
+        .mobile-apps-container {
+            margin: 25px 0;
+            display: none; /* Shown dynamically on mobile */
+            flex-direction: column;
+            gap: 12px;
+        }
+        .mobile-instruction {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .upi-app-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            text-decoration: none;
+            color: var(--primary);
+            background: white;
+        }
+        .upi-app-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        .upi-app-btn.phonepe {
+            background-color: #5f259f;
+            color: white;
+            border-color: #5f259f;
+        }
+        .upi-app-btn.paytm {
+            background-color: #00b9f5;
+            color: white;
+            border-color: #00b9f5;
+        }
+        .upi-app-btn.gpay {
+            background-color: #fff;
+            color: #3c4043;
+            border-color: #dadce0;
+        }
+        .upi-app-btn.generic {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .app-icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: white;
+            padding: 2px;
+        }
+        .action-confirm-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            box-shadow: var(--shadow-glow);
+            margin-top: 15px;
+        }
+        .action-confirm-btn:hover {
+            background-color: #c42424;
+            transform: translateY(-2px);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 480px;
+            width: 100%;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .modal-label {
+            display: block;
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            box-sizing: border-box;
+            outline: none;
+            transition: var(--transition-fast);
+        }
+        .modal-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(229, 46, 46, 0.1);
+        }
+        .warning-box {
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 0.82rem;
+            color: #c53030;
+            text-align: left;
+            line-height: 1.45;
+            margin-bottom: 20px;
+        }
+        .modal-submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 6px;
+            width: 100%;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .modal-submit-btn:hover {
+            background-color: var(--primary-light);
+        }
+
+        /* Simulation Screen Styles */
+        .simulation-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            color: white;
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+        }
+        .simulation-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 25px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .simulation-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .simulation-status {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            height: 24px;
+        }
+        
+        .payment-notes {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 20px;
+            line-height: 1.45;
+            text-align: left;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header placeholder -->
+    <div id="header-placeholder"></div>
+
+    <div class="payment-wrapper">
+        <div class="payment-card">
+            
+            <div class="gateway-header">
+                <div class="gateway-logo">IKKO <span>PAY</span></div>
+                <div class="secure-badge">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Secure UPI Payment
+                </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="timer-container">
+                <span>Time remaining to complete payment:</span>
+                <span class="timer-clock" id="countdown-timer">05:00</span>
+            </div>
+
+            <!-- Amount Box -->
+            <div class="amount-display-box">
+                <div class="amount-display-label">Amount to Pay</div>
+                <div class="amount-display-value" id="payment-amount">Rs. 0.00</div>
+                
+                <div class="order-meta-info">
+                    <div>Order ID: <strong id="payment-order-id">IKKO-000000</strong></div>
+                    <div>Payee Name: <strong id="payment-payee">Lucky Jat</strong></div>
+                </div>
+            </div>
+
+            <!-- Desktop View: QR Code -->
+            <div class="qr-code-box" id="desktop-payment-view">
+                <div class="qr-code-image-wrapper">
+                    <img id="dynamic-qr-image" src="" alt="Scan to Pay">
+                </div>
+                <p class="qr-instruction">
+                    Open GPay, PhonePe, Paytm, BHIM, or any UPI App and <strong>scan the QR code</strong> to pay.
+                </p>
+            </div>
+
+            <!-- Mobile View: App Launch Buttons -->
+            <div class="mobile-apps-container" id="mobile-payment-view">
+                <div class="mobile-instruction">Choose UPI App to Pay:</div>
+                
+                <!-- PhonePe Redirect -->
+                <a href="#" class="upi-app-btn phonepe" id="link-phonepe">
+                    <img src="Image/phonepe-logo.svg" alt="PhonePe" class="app-icon">
+                    Pay via PhonePe
+                </a>
+
+                <!-- GPay Redirect -->
+                <a href="#" class="upi-app-btn gpay" id="link-gpay">
+                    <img src="Image/google-pay-logo.svg" alt="Google Pay" class="app-icon">
+                    Pay via Google Pay
+                </a>
+
+                <!-- Paytm Redirect -->
+                <a href="#" class="upi-app-btn paytm" id="link-paytm">
+                    <img src="Image/paytm-logo.svg" alt="Paytm" class="app-icon">
+                    Pay via Paytm
+                </a>
+
+                <!-- Generic Chooser -->
+                <a href="#" class="upi-app-btn generic" id="link-generic">
+                    Pay via Any UPI App
+                </a>
+            </div>
+
+            <!-- Action Button -->
+            <button class="action-confirm-btn" onclick="openUtrModal()">I Have Paid / मैंने पेमेंट कर दी है</button>
+
+            <!-- Warnings/Notes -->
+            <div class="payment-notes">
+                <strong>Important Instructions:</strong>
+                <ul>
+                    <li>Do not close this page or click back until payment is confirmed.</li>
+                    <li>Ensure you make the payment for the exact amount shown above.</li>
+                    <li>Copy and save the <strong>12-digit UTR/Reference number</strong> from your payment success receipt; you will need it to confirm the order.</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- UTR Input Modal -->
+    <div class="modal-overlay" id="utr-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeUtrModal()">&times;</button>
+            <h3 class="modal-title">Confirm Payment</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
+                Please enter the 12-digit UTR/Reference number from your UPI payment success screen to verify your order.
+            </p>
+            
+            <form onsubmit="handleUtrSubmit(event)">
+                <label for="utr-input" class="modal-label">12-Digit UTR Number / UPI Ref No *</label>
+                <input type="text" id="utr-input" class="modal-input" placeholder="e.g. 604512984512" 
+                       pattern="[0-9]{12}" maxlength="12" required autocomplete="off"
+                       title="Please enter a valid 12-digit numeric UPI reference number.">
+                
+                <div class="warning-box">
+                    <strong>⚠️ Warning / चेतावनी:</strong><br>
+                    Entering a fake or incorrect UTR number will result in <strong>automatic cancellation of your order</strong> and permanent blacklisting of your details from our store.<br>
+                    (गलत UTR नंबर डालने पर आर्डर निरस्त कर दिया जायेगा।)
+                </div>
+                
+                <button type="submit" class="modal-submit-btn">Verify & Confirm Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Full-screen simulated validation spinner overlay -->
+    <div class="simulation-overlay" id="simulation-overlay">
+        <div class="simulation-spinner"></div>
+        <div class="simulation-title">Verifying Payment</div>
+        <div class="simulation-status" id="simulation-status">Connecting to secure UPI gateway...</div>
+    </div>
+
+    <!-- Footer placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Core Scripts -->
+    <script src="app-core.js?v=11.0"></script>
+    <script>
+        let orderId = '';
+        let amount = 0;
+        let upiId = '9300241235@slc';
+        let payeeName = 'Lucky Jat';
+        let selectedMethod = '';
+
+        // Load Order Details
+        window.addEventListener('load', () => {
+            // Render Header and Footer dynamically via app-core
+            renderHeaderAndFooter();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            orderId = urlParams.get('orderId');
+            selectedMethod = urlParams.get('method') || 'phonepe';
+            
+            // Check dynamic settings passed via URL or fallback to dynamic local settings
+            upiId = urlParams.get('upi') || upiId;
+            payeeName = urlParams.get('name') || payeeName;
+
+            if (!orderId) {
+                alert('Order information not found. Redirecting to storefront.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Find order in local storage
+            const orders = getOrders();
+            const order = orders.find(o => o.id === orderId);
+
+            if (!order) {
+                alert('Order not found. Redirecting to storefront.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            amount = parseFloat(order.total);
+
+            // Populate UI Elements
+            document.getElementById('payment-order-id').innerText = orderId;
+            document.getElementById('payment-amount').innerText = formatPrice(amount);
+            document.getElementById('payment-payee').innerText = payeeName;
+
+            // Generate UPI URIs
+            const cleanAmount = amount.toFixed(2);
+            // standard UPI Link: upi://pay?pa=address&pn=name&am=amount&cu=INR&tn=orderId
+            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
+            
+            // Specific App URIs
+            const phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
+            const paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
+            // Generic UPI works best for GPay app selection on both platforms
+            const gpayUri = baseUpiUri; 
+
+            // Setup Mobile app action buttons
+            document.getElementById('link-phonepe').href = phonepeUri;
+            document.getElementById('link-paytm').href = paytmUri;
+            document.getElementById('link-gpay').href = gpayUri;
+            document.getElementById('link-generic').href = baseUpiUri;
+
+            // Device Detection & View Management
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // Show Mobile View, hide desktop QR
+                document.getElementById('mobile-payment-view').style.display = 'flex';
+                document.getElementById('desktop-payment-view').style.display = 'none';
+
+                // Auto-redirect to chosen app after 1s on mobile load
+                setTimeout(() => {
+                    if (selectedMethod === 'phonepe') {
+                        window.location.href = phonepeUri;
+                    } else if (selectedMethod === 'paytm') {
+                        window.location.href = paytmUri;
+                    } else {
+                        window.location.href = baseUpiUri; // triggers default upi chooser
+                    }
+                }, 1000);
+            } else {
+                // Generate QR Code dynamically for Desktop
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
+                document.getElementById('dynamic-qr-image').src = qrCodeUrl;
+            }
+
+            // Start Countdown Timer
+            startTimer(300); // 5 minutes (300 seconds)
+        });
+
+        // Countdown Timer Logic
+        function startTimer(duration) {
+            let timer = duration, minutes, seconds;
+            const timerClock = document.getElementById('countdown-timer');
+            const interval = setInterval(() => {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                timerClock.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    timerClock.textContent = "EXPIRED";
+                    timerClock.style.color = "red";
+                    alert("Payment window has expired. Please place your order again.");
+                    window.location.href = 'checkout.html';
+                }
+            }, 1000);
+        }
+
+        // Render header/footer wrapper (simulate app-core if required)
+        function renderHeaderAndFooter() {
+            // Standard renderers inside app-core
+            if (typeof window.renderHeader === 'function') window.renderHeader();
+            if (typeof window.renderFooter === 'function') window.renderFooter();
+        }
+
+        // Modal triggers
+        function openUtrModal() {
+            document.getElementById('utr-modal').style.display = 'flex';
+            document.getElementById('utr-input').focus();
+        }
+
+        function closeUtrModal() {
+            document.getElementById('utr-modal').style.display = 'none';
+        }
+
+        // UTR Form submission
+        function handleUtrSubmit(e) {
+            e.preventDefault();
+            const utrInput = document.getElementById('utr-input').value.trim();
+
+            if (!/^\d{12}$/.test(utrInput)) {
+                alert('Please enter a valid 12-digit numeric UTR/Reference number.');
+                return;
+            }
+
+            closeUtrModal();
+            showSimulationOverlay(utrInput);
+        }
+
+        // Simulated full-screen validation steps
+        function showSimulationOverlay(utr) {
+            const overlay = document.getElementById('simulation-overlay');
+            const statusText = document.getElementById('simulation-status');
+            overlay.style.display = 'flex';
+
+            const steps = [
+                { text: "Connecting to secure UPI settlement ledger...", delay: 1000 },
+                { text: "Verifying UTR " + utr + " with bank records...", delay: 2000 },
+                { text: "Settlement verified! Syncing transaction metadata...", delay: 3000 },
+                { text: "Order confirmed! Redirecting to confirmation page...", delay: 4000 }
+            ];
+
+            steps.forEach((step, idx) => {
+                setTimeout(() => {
+                    statusText.innerText = step.text;
+                    
+                    // Final redirection step
+                    if (idx === steps.length - 1) {
+                        completeOrder(utr);
+                    }
+                }, step.delay);
+            });
+        }
+
+        // Complete Order and update Local Storage
+        function completeOrder(utr) {
+            try {
+                const orders = getOrders();
+                const orderIdx = orders.findIndex(o => o.id === orderId);
+
+                if (orderIdx !== -1) {
+                    const order = orders[orderIdx];
+                    order.status = 'pending'; // Moves status to successful order
+                    order.utr = utr; // Assigns the entered UTR
+                    
+                    // Save back
+                    orders[orderIdx] = order;
+                    localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                }
+
+                // Clear customer shopping cart
+                if (typeof clearCart === 'function') {
+                    clearCart();
+                } else {
+                    localStorage.removeItem('ikko_cart');
+                }
+
+                // Redirect to success
+                window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}`;
+
+            } catch (err) {
+                console.error("Error saving completed order:", err);
+                alert("An error occurred while saving your order. Please contact support.");
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
