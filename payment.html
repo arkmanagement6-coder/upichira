@@ -522,12 +522,11 @@
 
             // Generate UPI URIs
             const cleanAmount = amount.toFixed(2);
-            // standard UPI Link: upi://pay?pa=address&pn=name&am=amount&cu=INR&tn=orderId
-            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
+            // standard UPI Link: upi://pay?pa=address&pn=name&am=amount&cu=INR (Removed &tn= to avoid security blocks on P2P VPAs)
+            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
             
             // Device and OS Detection
             const isAndroid = /Android/i.test(navigator.userAgent);
-            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
             
             // Setup app redirect URIs
             let phonepeUri = baseUpiUri;
@@ -537,16 +536,13 @@
 
             if (isAndroid) {
                 // Official Android Intent format launches direct apps securely without triggering security blocks
-                phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}#Intent;scheme=upi;package=com.phonepe.app;end`;
-                paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-            } else if (isIOS) {
-                // iOS standard app-specific schemes
-                phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
-                paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
-                gpayUri = baseUpiUri; 
+                phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`;
+                paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=net.one97.paytm;end`;
+                gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
             } else {
-                // Desktop / other
+                // iOS & other mobile: use the generic upi://pay scheme for all buttons because iOS custom app schemes (phonepe://, paytmmp://)
+                // often throw "Something went wrong" errors for unverified P2P addresses.
+                // The generic upi:// scheme works perfectly, letting the user choose their app safely.
                 phonepeUri = baseUpiUri;
                 paytmUri = baseUpiUri;
                 gpayUri = baseUpiUri;
