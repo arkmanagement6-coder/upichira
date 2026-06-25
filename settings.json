@@ -1,7 +1,7 @@
 {
   "phonepeEnabled": true,
-  "phonepeMerchantId": "8888817766@ibl",
-  "phonepeClientId": "RAVI S DHAKRE",
+  "phonepeMerchantId": "sabpaisajarvis@nyes",
+  "phonepeClientId": "Jayris",
   "phonepeClientSecret": "cab34e32-8fb5-4d6d-94be-7bcccc16c8cb",
   "phonepeMode": "live",
   "firebaseEnabled": false,
