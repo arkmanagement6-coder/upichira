@@ -615,7 +615,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=14.0"></script>
+    <script src="app-core.js?v=15.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
@@ -632,16 +632,17 @@
             orderId = urlParams.get('orderId');
             selectedMethod = urlParams.get('method') || 'phonepe';
             
-            upiId = urlParams.get('upi') || upiId;
-            payeeName = urlParams.get('name') || payeeName;
-
-            // Check dynamic settings passed via client-side settings, fallback to URL or defaults
+            // Check dynamic settings passed via client-side settings
             const settings = getSettings();
             if (settings) {
                 upiId = settings.phonepeMerchantId || upiId;
                 payeeName = settings.phonepeClientId || payeeName;
             }
 
+            // URL params take precedence over settings (so specific checkout configurations win)
+            upiId = urlParams.get('upi') || upiId;
+            payeeName = urlParams.get('name') || payeeName;
+            
             // Safety override: Ensure name matches registered UPI name to avoid bank-mismatch security blocks
             if (upiId === '8888817766@ibl') {
                 payeeName = 'RAVI S DHAKRE';

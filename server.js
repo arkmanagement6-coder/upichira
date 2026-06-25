@@ -27,6 +27,13 @@ const server = http.createServer((req, res) => {
         return;
     }
     
+    // Server-side settings saving endpoint
+    if (req.method === 'POST' && req.url === '/api/save-settings') {
+        const saveSettingsHandler = require('./api/save-settings');
+        saveSettingsHandler(req, res);
+        return;
+    }
+    
     // Normalize path and solve index.html routing
     let decodedUrl;
     try {

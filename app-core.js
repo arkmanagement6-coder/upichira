@@ -876,37 +876,10 @@ async function loadGlobalSettings() {
                             
                             const finalSettings = { ...mergedSettings, ...firestoreSettings };
                             
-                            // Ensure settings.json values always take absolute precedence over database
-                            if (globalSettings.phonepeEnabled !== undefined) {
-                                finalSettings.phonepeEnabled = globalSettings.phonepeEnabled;
-                            }
-                            if (globalSettings.phonepeMerchantId !== undefined) {
-                                finalSettings.phonepeMerchantId = globalSettings.phonepeMerchantId;
-                                finalSettings.phonepeClientId = globalSettings.phonepeClientId;
-                                finalSettings.phonepeClientSecret = globalSettings.phonepeClientSecret;
-                                finalSettings.phonepeMode = globalSettings.phonepeMode;
-                            }
-                            if (globalSettings.firebaseEnabled !== undefined) {
-                                finalSettings.firebaseEnabled = globalSettings.firebaseEnabled;
-                            }
-                            
-                            // Check if settings.json has been updated with different PhonePe credentials
-                            let needsFirestoreUpdate = false;
-                            if (firestoreSettings.phonepeMerchantId !== globalSettings.phonepeMerchantId || 
-                                firestoreSettings.phonepeEnabled !== globalSettings.phonepeEnabled ||
-                                firestoreSettings.phonepeClientId !== globalSettings.phonepeClientId ||
-                                firestoreSettings.phonepeClientSecret !== globalSettings.phonepeClientSecret ||
-                                firestoreSettings.phonepeMode !== globalSettings.phonepeMode) {
-                                needsFirestoreUpdate = true;
-                            }
-                            
+                            // Do NOT overwrite Firestore settings with settings.json defaults to allow admin panel overrides to persist.
+                            // Simply store the merged settings in localStorage (where Firestore overrides settings.json).
                             localStorage.setItem('ikko_settings', JSON.stringify(finalSettings));
-                            console.log("Loaded dynamic settings from Firestore successfully.");
-                            
-                            if (needsFirestoreUpdate) {
-                                await db.collection('settings').doc('global').set(cleanUndefinedFields(finalSettings));
-                                console.log("Updated Firestore global settings with new settings.json configuration.");
-                            }
+                            console.log("Loaded dynamic settings from Firestore successfully:", finalSettings);
                         } else {
                             // If settings/global does not exist, save the current mergedSettings to Firestore
                             await db.collection('settings').doc('global').set(cleanUndefinedFields(mergedSettings));
@@ -967,6 +940,20 @@ async function saveSettings(settings) {
         } catch (e) {
             console.error("Failed to save settings to Firestore:", e);
         }
+    }
+
+    // Try to save to server settings.json in real-time if endpoint is available
+    try {
+        await fetch('/api/save-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        console.log("Settings saved to server settings.json successfully.");
+    } catch (e) {
+        console.warn("Server settings.json write not supported or failed:", e);
     }
 }
 

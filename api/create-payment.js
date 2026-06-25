@@ -81,9 +81,9 @@ module.exports = async (req, res) => {
                 console.error('Error reading settings.json:', err);
             }
 
-            // We repurpose phonepeMerchantId as UPI ID and phonepeClientId as Payee Name
-            const upiId = settings.phonepeMerchantId || '8888817766@ibl';
-            const payeeName = settings.phonepeClientId || 'RAVI S DHAKRE';
+            // We repurpose phonepeMerchantId as UPI ID and phonepeClientId as Payee Name, with request body overrides
+            const upiId = data.upi || settings.phonepeMerchantId || '8888817766@ibl';
+            const payeeName = data.name || settings.phonepeClientId || 'RAVI S DHAKRE';
 
             console.log(`[UPI Checkout] Initiating checkout for order ${orderId}, amount: ${amount}, method: ${method}`);
             
