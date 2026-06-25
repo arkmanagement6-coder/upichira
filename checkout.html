@@ -207,7 +207,7 @@
     </div>
 
     <!-- Sticky Bottom Bar (For Mobile Layout) -->
-    <div class="mobile-sticky-checkout-bar" id="sticky-bottom-action-bar" style="display: none;">
+    <div class="mobile-sticky-checkout-bar" id="sticky-bottom-action-bar">
         <div class="price-summary-left">
             <span class="strikethrough-original" id="sticky-original-price">Rs. 0.00</span>
             <span class="final-price-bold" id="sticky-final-price">Rs. 0.00</span>
@@ -238,6 +238,7 @@
                 addressSec.style.display = 'block';
                 paymentSec.style.display = 'none';
                 stickyBar.classList.remove('active-step2');
+                stickyBar.style.display = 'none';
                 
                 indAddress.classList.add('active');
                 indAddress.classList.remove('completed');
@@ -247,6 +248,13 @@
                 addressSec.style.display = 'none';
                 paymentSec.style.display = 'block';
                 stickyBar.classList.add('active-step2');
+                
+                // Show sticky bottom bar on mobile step 2
+                if (window.innerWidth <= 768) {
+                    stickyBar.style.display = 'flex';
+                } else {
+                    stickyBar.style.display = 'none';
+                }
                 
                 indAddress.classList.remove('active');
                 indAddress.classList.add('completed');

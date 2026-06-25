@@ -525,11 +525,32 @@
             // standard UPI Link: upi://pay?pa=address&pn=name&am=amount&cu=INR&tn=orderId
             const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
             
-            // Specific App URIs
-            const phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
-            const paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
-            // Generic UPI works best for GPay app selection on both platforms
-            const gpayUri = baseUpiUri; 
+            // Device and OS Detection
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            
+            // Setup app redirect URIs
+            let phonepeUri = baseUpiUri;
+            let paytmUri = baseUpiUri;
+            let gpayUri = baseUpiUri;
+            let genericUri = baseUpiUri;
+
+            if (isAndroid) {
+                // Official Android Intent format launches direct apps securely without triggering security blocks
+                phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}#Intent;scheme=upi;package=com.phonepe.app;end`;
+                paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}#Intent;scheme=upi;package=net.one97.paytm;end`;
+                gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+            } else if (isIOS) {
+                // iOS standard app-specific schemes
+                phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
+                paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId)}`;
+                gpayUri = baseUpiUri; 
+            } else {
+                // Desktop / other
+                phonepeUri = baseUpiUri;
+                paytmUri = baseUpiUri;
+                gpayUri = baseUpiUri;
+            }
 
             // Setup Mobile app action buttons
             document.getElementById('link-phonepe').href = phonepeUri;
@@ -551,6 +572,8 @@
                         window.location.href = phonepeUri;
                     } else if (selectedMethod === 'paytm') {
                         window.location.href = paytmUri;
+                    } else if (selectedMethod === 'gpay') {
+                        window.location.href = gpayUri;
                     } else {
                         window.location.href = baseUpiUri; // triggers default upi chooser
                     }
