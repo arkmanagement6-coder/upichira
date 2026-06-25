@@ -610,6 +610,18 @@
             upiId = urlParams.get('upi') || upiId;
             payeeName = urlParams.get('name') || payeeName;
 
+            // Safety override: Ensure name matches registered UPI name to avoid bank-mismatch security blocks
+            if (upiId === '8888817766@ibl') {
+                payeeName = 'RAVI S DHAKRE';
+            } else if (upiId === '9300241235@slc') {
+                payeeName = 'Lucky Jat';
+            }
+            
+            // Clean up name if it contains a client ID instead of a valid name
+            if (/^SU\d+/i.test(payeeName) || payeeName === 'SU2605131450590093051231') {
+                payeeName = 'RAVI S DHAKRE';
+            }
+
             if (!orderId) {
                 alert('Order information not found. Redirecting to storefront.');
                 window.location.href = 'index.html';

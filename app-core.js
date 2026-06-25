@@ -813,6 +813,15 @@ async function loadGlobalSettings() {
             const globalSettings = await res.json();
             const localSettings = JSON.parse(localStorage.getItem('ikko_settings')) || {};
             
+            // Migration: Reset old credentials if they exist in localStorage to avoid name-mismatch errors
+            if (localSettings.phonepeClientId === 'SU2605131450590093051231' || 
+                localSettings.phonepeMerchantId === 'M23P2N630SNVS' ||
+                localSettings.phonepeMerchantId === '9300241235@slc') {
+                localSettings.phonepeMerchantId = '8888817766@ibl';
+                localSettings.phonepeClientId = 'RAVI S DHAKRE';
+                localStorage.setItem('ikko_settings', JSON.stringify(localSettings));
+            }
+            
             // Merge settings: local overrides take precedence for admin convenience,
             // but empty local settings must NOT overwrite valid global settings.
             const mergedSettings = { ...globalSettings };
