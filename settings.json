@@ -1,9 +1,10 @@
 {
   "phonepeEnabled": true,
-  "phonepeMerchantId": "sabpaisajarvis@nyes",
-  "phonepeClientId": "Jayris",
+  "phonepeMerchantId": "1991083v5v@mairtel",
+  "phonepeClientId": "Bhalani Nandlal Madhavajibhai",
   "phonepeClientSecret": "cab34e32-8fb5-4d6d-94be-7bcccc16c8cb",
   "phonepeMode": "live",
+  "customQrUrl": "/Image/airtel_merchant_qr.png",
   "firebaseEnabled": false,
   "firebaseConfig": {
     "apiKey": "AIzaSyBEA_951CCrsfl8JHkayubYjv3rTaDcsEI",

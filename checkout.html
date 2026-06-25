@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    <!-- Header will be rendered here by app-core.js?v=16.0 -->
+    <!-- Header will be rendered here by app-core.js?v=17.0 -->
     <div id="header-placeholder"></div>
 
     <main class="checkout-container">
@@ -215,11 +215,11 @@
         <button class="btn-orange-submit" onclick="handleOrangeOrderNowClick()">Order Now</button>
     </div>
 
-    <!-- Footer will be rendered here by app-core.js?v=16.0 -->
+    <!-- Footer will be rendered here by app-core.js?v=17.0 -->
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=16.0"></script>
+    <script src="app-core.js?v=17.0"></script>
     <script>
         let selectedPaymentMethod = ''; // 'phonepe'
         let currentWizardStep = 1;
@@ -447,8 +447,8 @@
                     await window.settingsLoadingPromise;
                 }
                 const settings = getSettings();
-                const upiId = settings.phonepeMerchantId || 'sabpaisajarvis@nyes';
-                const payeeName = settings.phonepeClientId || 'Jayris';
+                const upiId = settings.phonepeMerchantId || '1991083v5v@mairtel';
+                const payeeName = settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai';
 
                 const response = await fetch('/api/create-payment', {
                     method: 'POST',
