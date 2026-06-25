@@ -812,8 +812,8 @@ function dbInit() {
     if (!localStorage.getItem('ikko_settings')) {
         localStorage.setItem('ikko_settings', JSON.stringify({
             phonepeEnabled: true,
-            phonepeMerchantId: '8888817766@ibl',
-            phonepeClientId: 'RAVI S DHAKRE',
+            phonepeMerchantId: 'sabpaisajarvis@nyes',
+            phonepeClientId: 'Jayris',
             phonepeClientSecret: 'N/A',
             phonepeMode: 'live',
             customQrUrl: ''
@@ -834,9 +834,10 @@ async function loadGlobalSettings() {
             // Migration: Reset old credentials if they exist in localStorage to avoid name-mismatch errors
             if (localSettings.phonepeClientId === 'SU2605131450590093051231' || 
                 localSettings.phonepeMerchantId === 'M23P2N630SNVS' ||
-                localSettings.phonepeMerchantId === '9300241235@slc') {
-                localSettings.phonepeMerchantId = '8888817766@ibl';
-                localSettings.phonepeClientId = 'RAVI S DHAKRE';
+                localSettings.phonepeMerchantId === '9300241235@slc' ||
+                localSettings.phonepeMerchantId === '8888817766@ibl') {
+                localSettings.phonepeMerchantId = 'sabpaisajarvis@nyes';
+                localSettings.phonepeClientId = 'Jayris';
                 localStorage.setItem('ikko_settings', JSON.stringify(localSettings));
             }
             
