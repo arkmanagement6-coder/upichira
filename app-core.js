@@ -812,7 +812,7 @@ function dbInit() {
     if (!localStorage.getItem('ikko_settings')) {
         localStorage.setItem('ikko_settings', JSON.stringify({
             phonepeEnabled: true,
-            phonepeMerchantId: '8888817766@ibl',
+            phonepeMerchantId: 's1955579688661043@slc',
             phonepeClientId: 'RAVI S DHAKRE',
             phonepeClientSecret: 'N/A',
             phonepeMode: 'live',
@@ -836,8 +836,9 @@ async function loadGlobalSettings() {
                 localSettings.phonepeMerchantId === 'M23P2N630SNVS' ||
                 localSettings.phonepeMerchantId === '9300241235@slc' ||
                 localSettings.phonepeMerchantId === 'sabpaisajarvis@nyes' ||
+                localSettings.phonepeMerchantId === '8888817766@ibl' ||
                 localSettings.phonepeMerchantId === '1991083v5v@mairtel') {
-                localSettings.phonepeMerchantId = '8888817766@ibl';
+                localSettings.phonepeMerchantId = 's1955579688661043@slc';
                 localSettings.phonepeClientId = 'RAVI S DHAKRE';
                 localSettings.customQrUrl = '';
                 localStorage.setItem('ikko_settings', JSON.stringify(localSettings));

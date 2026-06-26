@@ -239,7 +239,7 @@
             // Check if we need to auto-launch the UPI app (from mobile checkout redirection)
             const launchMethod = urlParams.get('launchMethod');
             if (launchMethod) {
-                const upiId = urlParams.get('upi') || '8888817766@ibl';
+                const upiId = urlParams.get('upi') || 's1955579688661043@slc';
                 const payeeName = urlParams.get('name') || 'RAVI S DHAKRE';
                 const amount = parseFloat(order.total);
                 
@@ -512,7 +512,7 @@
                             
                             // Resolve merchant settings
                             const settings = getSettings();
-                            const upiId = settings.phonepeMerchantId || '8888817766@ibl';
+                            const upiId = settings.phonepeMerchantId || 's1955579688661043@slc';
                             const payeeName = settings.phonepeClientId || 'RAVI S DHAKRE';
                             const amount = parseFloat(order.total);
                             

@@ -447,7 +447,7 @@
                     await window.settingsLoadingPromise;
                 }
                 const settings = getSettings();
-                const upiId = settings.phonepeMerchantId || '8888817766@ibl';
+                const upiId = settings.phonepeMerchantId || 's1955579688661043@slc';
                 const payeeName = settings.phonepeClientId || 'RAVI S DHAKRE';
 
                 const response = await fetch('/api/create-payment', {
@@ -474,17 +474,6 @@
                     if (isMobile) {
                         let resolvedUpiId = upiId;
                         let resolvedPayeeName = payeeName;
-                        
-                        // Safety override: Ensure name matches registered UPI name to avoid bank-mismatch security blocks
-                        if (resolvedUpiId === '1991083v5v@mairtel') {
-                            resolvedPayeeName = 'Bhalani Nandlal Madhavajibhai';
-                        } else if (resolvedUpiId === 'sabpaisajarvis@nyes') {
-                            resolvedPayeeName = 'Jayris';
-                        } else if (resolvedUpiId === '8888817766@ibl') {
-                            resolvedPayeeName = 'RAVI S DHAKRE';
-                        } else if (resolvedUpiId === '9300241235@slc') {
-                            resolvedPayeeName = 'Lucky Jat';
-                        }
                         
                         // Clean up name if it contains a client ID instead of a valid name
                         if (/^SU\d+/i.test(resolvedPayeeName) || resolvedPayeeName === 'SU2605131450590093051231') {
