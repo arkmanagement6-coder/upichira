@@ -467,8 +467,74 @@
 
                 const result = await response.json();
                 if (result && result.success && result.redirectUrl) {
-                    // Redirect directly to PhonePe Payment Checkout Gateway
-                    window.location.href = result.redirectUrl;
+                    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const isSmallScreen = window.innerWidth <= 768;
+                    const isMobile = isMobileUA || isSmallScreen;
+
+                    if (isMobile) {
+                        let resolvedUpiId = upiId;
+                        let resolvedPayeeName = payeeName;
+                        
+                        // Safety override: Ensure name matches registered UPI name to avoid bank-mismatch security blocks
+                        if (resolvedUpiId === '1991083v5v@mairtel') {
+                            resolvedPayeeName = 'Bhalani Nandlal Madhavajibhai';
+                        } else if (resolvedUpiId === 'sabpaisajarvis@nyes') {
+                            resolvedPayeeName = 'Jayris';
+                        } else if (resolvedUpiId === '8888817766@ibl') {
+                            resolvedPayeeName = 'RAVI S DHAKRE';
+                        } else if (resolvedUpiId === '9300241235@slc') {
+                            resolvedPayeeName = 'Lucky Jat';
+                        }
+                        
+                        // Clean up name if it contains a client ID instead of a valid name
+                        if (/^SU\d+/i.test(resolvedPayeeName) || resolvedPayeeName === 'SU2605131450590093051231') {
+                            resolvedPayeeName = 'RAVI S DHAKRE';
+                        }
+
+                        const isAndroid = /Android/i.test(navigator.userAgent);
+                        const cleanAmount = total.toFixed(2);
+                        const baseUpiUri = `upi://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR`;
+                        
+                        let appUri = baseUpiUri;
+                        
+                        if (selectedPaymentMethod === 'phonepe') {
+                            const phonepePayload = {
+                                contact: { cbcName: "", nickName: "", vpa: resolvedUpiId, type: "VPA" },
+                                p2pPaymentCheckoutParams: {
+                                    note: "Secure Payment " + (orderId || ""),
+                                    isByDefaultKnownContact: true,
+                                    initialAmount: Math.round(total * 100),
+                                    currency: "INR",
+                                    checkoutType: "DEFAULT",
+                                    transactionContext: "p2p"
+                                }
+                            };
+                            let phonepeBase64 = "";
+                            try {
+                                phonepeBase64 = btoa(JSON.stringify(phonepePayload));
+                            } catch (e) {
+                                phonepeBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
+                            }
+                            appUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
+                        } else if (selectedPaymentMethod === 'paytm') {
+                            appUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
+                        } else if (selectedPaymentMethod === 'gpay') {
+                            appUri = isAndroid 
+                                ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                                : baseUpiUri;
+                        }
+
+                        // Launch app
+                        window.location.href = appUri;
+
+                        // Redirect browser tab to confirmation page immediately
+                        setTimeout(() => {
+                            window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}`);
+                        }, 250);
+                    } else {
+                        // Desktop: Redirect to payment.html for QR code scanning
+                        window.location.href = result.redirectUrl;
+                    }
                 } else {
                     alert('Failed to initiate PhonePe checkout: ' + (result.message || 'Please try again.'));
                     orderButtons.forEach(btn => {
