@@ -525,7 +525,8 @@
                                 let appLabel = 'UPI App';
                                 let btnColor = 'var(--primary)';
                                 
-                                const method = order.paymentMethod || 'phonepe';
+                                // Always use Paytm for subsequent manual app openings ("dobara") to ensure high success rates
+                                const method = 'paytm';
                                 
                                 if (method === 'phonepe') {
                                     const phonepePayload = {
