@@ -20,16 +20,8 @@ module.exports = async (req, res) => {
         return;
     }
 
-    // Read request body
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
-    
-    req.on('end', async () => {
+    async function processSave(data) {
         try {
-            const data = req.body || JSON.parse(body || '{}');
-            
             const settingsPath = path.join(process.cwd(), 'settings.json');
             
             // Read existing settings first to preserve any unspecified keys if needed
@@ -61,5 +53,24 @@ module.exports = async (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ success: false, message: 'Internal server error: ' + err.message }));
         }
-    });
+    }
+
+    if (req.body) {
+        await processSave(req.body);
+    } else {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        req.on('end', async () => {
+            try {
+                const data = JSON.parse(body || '{}');
+                await processSave(data);
+            } catch (e) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ success: false, message: 'Invalid JSON body' }));
+            }
+        });
+    }
 };

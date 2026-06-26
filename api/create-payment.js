@@ -50,22 +50,16 @@ module.exports = async (req, res) => {
         return;
     }
 
-    // Read request body
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
-    
-    req.on('end', async () => {
+    async function processPayment(data) {
         try {
-            const data = req.body || JSON.parse(body || '{}');
             const orderId = data.orderId;
             const amount = data.amount;
             const redirectUrl = data.redirectUrl;
-            const method = data.method || 'phonepe'; // default method
+            const method = data.method || 'phonepe';
 
             if (!orderId || !amount || !redirectUrl) {
                 res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ success: false, message: 'Missing required parameters: orderId, amount, redirectUrl' }));
                 return;
             }
@@ -91,13 +85,34 @@ module.exports = async (req, res) => {
             const customRedirectUrl = `/payment.html?orderId=${encodeURIComponent(orderId)}&method=${encodeURIComponent(method)}&upi=${encodeURIComponent(upiId)}&name=${encodeURIComponent(payeeName)}`;
 
             res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ success: true, redirectUrl: customRedirectUrl }));
 
         } catch (err) {
             console.error('[UPI Checkout] Internal server error:', err);
             res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ success: false, message: 'Internal server error: ' + err.message }));
         }
-    });
+    }
+
+    if (req.body) {
+        await processPayment(req.body);
+    } else {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        req.on('end', async () => {
+            try {
+                const data = JSON.parse(body || '{}');
+                await processPayment(data);
+            } catch (e) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ success: false, message: 'Invalid JSON body' }));
+            }
+        });
+    }
 };
 
