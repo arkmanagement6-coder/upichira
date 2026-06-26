@@ -812,11 +812,11 @@ function dbInit() {
     if (!localStorage.getItem('ikko_settings')) {
         localStorage.setItem('ikko_settings', JSON.stringify({
             phonepeEnabled: true,
-            phonepeMerchantId: '1991083v5v@mairtel',
-            phonepeClientId: 'Bhalani Nandlal Madhavajibhai',
+            phonepeMerchantId: '8888817766@ibl',
+            phonepeClientId: 'RAVI S DHAKRE',
             phonepeClientSecret: 'N/A',
             phonepeMode: 'live',
-            customQrUrl: '/Image/airtel_merchant_qr.png'
+            customQrUrl: ''
         }));
     }
 }
@@ -835,11 +835,11 @@ async function loadGlobalSettings() {
             if (localSettings.phonepeClientId === 'SU2605131450590093051231' || 
                 localSettings.phonepeMerchantId === 'M23P2N630SNVS' ||
                 localSettings.phonepeMerchantId === '9300241235@slc' ||
-                localSettings.phonepeMerchantId === '8888817766@ibl' ||
-                localSettings.phonepeMerchantId === 'sabpaisajarvis@nyes') {
-                localSettings.phonepeMerchantId = '1991083v5v@mairtel';
-                localSettings.phonepeClientId = 'Bhalani Nandlal Madhavajibhai';
-                localSettings.customQrUrl = '/Image/airtel_merchant_qr.png';
+                localSettings.phonepeMerchantId === 'sabpaisajarvis@nyes' ||
+                localSettings.phonepeMerchantId === '1991083v5v@mairtel') {
+                localSettings.phonepeMerchantId = '8888817766@ibl';
+                localSettings.phonepeClientId = 'RAVI S DHAKRE';
+                localSettings.customQrUrl = '';
                 localStorage.setItem('ikko_settings', JSON.stringify(localSettings));
             }
             
