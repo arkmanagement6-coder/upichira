@@ -363,9 +363,67 @@
                 `;
             }
 
-            let orderListenerUnsubscribe = null;
+            function renderUtrSubmissionUI(order) {
+                card.innerHTML = `
+                    <div style="text-align: center; padding: 30px 0;">
+                        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: rgba(229, 62, 62, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <h1 style="color: var(--primary); font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Submit UTR to Confirm Payment</h1>
+                        <h2 style="color: var(--text-muted); font-size: 1rem; font-weight: normal; margin-bottom: 25px;">ऑर्डर पूरा करने के लिए UTR नंबर डालें</h2>
+                        
+                        <p style="color: var(--text-dark); margin: 15px auto 10px auto; max-width: 480px; font-size: 1.05rem;">
+                            Your order <strong>${order.id}</strong> of <strong>${formatPrice(order.total)}</strong> is currently pending payment confirmation.
+                        </p>
+                        
+                        <div style="max-width: 420px; margin: 30px auto; background: var(--bg-main); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
+                            <form onsubmit="handleUtrSubmission(event, '${order.id}')">
+                                <label for="utr-input" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">12-Digit UTR Number / UPI Ref No *</label>
+                                <input type="text" id="utr-input" placeholder="e.g. 231784436885" required 
+                                       pattern="\\d{12}" maxLength="12" minLength="12"
+                                       style="width: 100%; padding: 12px 15px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 1.05rem; font-family: monospace; letter-spacing: 1px; margin-bottom: 15px; box-sizing: border-box;"
+                                       title="Please enter a valid 12-digit numeric UPI reference number.">
+                                <button type="submit" class="confirm-home-btn" style="width: 100%; border: none; cursor: pointer; padding: 12px; font-size: 1.05rem;">Submit UTR / यूटीआर सबमिट करें</button>
+                            </form>
+                        </div>
 
-            async function initOrderRealTimeListener(orderId) {
+                        <p style="color: var(--text-muted); font-size: 0.85rem; max-width: 480px; margin: 0 auto 20px auto;">
+                            Please enter the 12-digit UTR/Reference number from your UPI payment success screen to verify your order.
+                        </p>
+                        
+                        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                            <a href="index.html" class="confirm-home-btn" style="background-color: #718096; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; text-decoration: none;">Return to Storefront</a>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listener to auto-format numeric entry
+                const utrInput = document.getElementById('utr-input');
+                if (utrInput) {
+                    utrInput.addEventListener('input', function() {
+                        this.value = this.value.replace(/[^\d]/g, '').slice(0, 12);
+                    });
+                }
+            }
+
+            window.handleUtrSubmission = async function(event, orderId) {
+                event.preventDefault();
+                const utr = document.getElementById('utr-input').value.trim();
+                if (!/^\d{12}$/.test(utr)) {
+                    alert("Please enter a valid 12-digit numeric UTR/Reference number.");
+                    return;
+                }
+
+                // Update in local storage
+                const orders = getOrders();
+                const idx = orders.findIndex(o => o.id === orderId);
+                if (idx !== -1) {
+                    orders[idx].status = 'pending_verification';
+                    orders[idx].utr = utr;
+                    localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                }
+
+                // Sync to Firestore
                 if (window.settingsLoadingPromise) {
                     await window.settingsLoadingPromise;
                 }
@@ -373,58 +431,81 @@
                 if (settings.firebaseEnabled) {
                     const db = await initFirebase();
                     if (db) {
-                        console.log(`[Real-time] Subscribing to order ${orderId} status changes...`);
-                        orderListenerUnsubscribe = db.collection('orders').doc(orderId).onSnapshot((doc) => {
-                            if (doc.exists) {
-                                const updatedOrder = doc.data();
-                                console.log("[Real-time] Order updated from Firestore:", updatedOrder);
-                                
-                                // Update in local storage
-                                const orders = getOrders();
-                                const idx = orders.findIndex(o => o.id === orderId);
-                                if (idx !== -1) {
-                                    orders[idx] = updatedOrder;
-                                } else {
-                                    orders.push(updatedOrder);
-                                }
-                                localStorage.setItem('ikko_orders', JSON.stringify(orders));
-                                
-                                // Re-render confirmation screen dynamically
-                                renderConfirmationScreen(updatedOrder);
-                            }
-                        }, (err) => {
-                            console.error("[Real-time] Order subscription error:", err);
-                        });
+                        try {
+                            await db.collection('orders').doc(orderId).set({
+                                status: 'pending_verification',
+                                utr: utr
+                            }, { merge: true });
+                            console.log("[Confirmation] Order UTR synced to Firestore successfully.");
+                        } catch (e) {
+                            console.error("[Confirmation] Failed to sync UTR to Firestore:", e);
+                        }
                     }
                 }
+
+                // Reload page to reflect updated state and start listener
+                location.reload();
             }
 
-            function renderConfirmationScreen(order) {
-                if (order.status === 'pending') {
-                    renderSuccessUI(order);
-                } else if (order.status === 'pending_verification') {
-                    renderPendingVerificationUI(order);
-                } else if (order.status === 'cancelled' || order.utr === 'Payment Failed') {
-                    renderFailedUI(order);
-                } else {
-                    renderSuccessUI(order);
-                }
-            }
+            let orderListenerUnsubscribe = null;
+ 
+             async function initOrderRealTimeListener(orderId) {
+                 if (window.settingsLoadingPromise) {
+                     await window.settingsLoadingPromise;
+                 }
+                 const settings = getSettings();
+                 if (settings.firebaseEnabled) {
+                     const db = await initFirebase();
+                     if (db) {
+                         console.log(`[Real-time] Subscribing to order ${orderId} status changes...`);
+                         orderListenerUnsubscribe = db.collection('orders').doc(orderId).onSnapshot((doc) => {
+                             if (doc.exists) {
+                                 const updatedOrder = doc.data();
+                                 console.log("[Real-time] Order updated from Firestore:", updatedOrder);
+                                 
+                                 // Update in local storage
+                                 const orders = getOrders();
+                                 const idx = orders.findIndex(o => o.id === orderId);
+                                 if (idx !== -1) {
+                                     orders[idx] = updatedOrder;
+                                 } else {
+                                     orders.push(updatedOrder);
+                                 }
+                                 localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                                 
+                                 // Re-render confirmation screen dynamically
+                                 renderConfirmationScreen(updatedOrder);
+                             }
+                         }, (err) => {
+                             console.error("[Real-time] Order subscription error:", err);
+                         });
+                     }
+                 }
+             }
+ 
+             function renderConfirmationScreen(order) {
+                 if (order.status === 'pending') {
+                     renderSuccessUI(order);
+                 } else if (order.status === 'pending_verification') {
+                     if (order.utr.toLowerCase().includes('pending') || !order.utr.trim()) {
+                         renderUtrSubmissionUI(order);
+                     } else {
+                         renderPendingVerificationUI(order);
+                     }
+                 } else if (order.status === 'pending_payment') {
+                     renderUtrSubmissionUI(order);
+                 } else if (order.status === 'cancelled' || order.utr === 'Payment Failed') {
+                     renderFailedUI(order);
+                 } else {
+                     renderSuccessUI(order);
+                 }
+             }
+ 
+             // Start real-time listener to get the latest status from Firestore
+             initOrderRealTimeListener(orderId);
 
-            // Decide what to render immediately based on current localStorage state
-            if (order.status === 'pending') {
-                renderSuccessUI(order);
-            } else if (order.status === 'pending_verification') {
-                renderPendingVerificationUI(order);
-                initOrderRealTimeListener(orderId);
-            } else if (order.status === 'cancelled' || order.utr === 'Payment Failed') {
-                renderFailedUI(order);
-            } else if (order.status === 'pending_payment') {
-                // Redirect to payment page to complete payment
-                window.location.href = `payment.html?orderId=${encodeURIComponent(orderId)}`;
-            } else {
-                renderSuccessUI(order);
-            }
+             // Decide what to render immediately based on current localStorage state
+             renderConfirmationScreen(order);
         }
 
         window.addEventListener('DOMContentLoaded', () => {

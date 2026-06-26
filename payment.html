@@ -750,6 +750,11 @@
                         window.location.href = baseUpiUri; // triggers default upi chooser
                     }
                 }, 1000);
+
+                // Auto-redirect background page to order-confirmation after 60s
+                setTimeout(() => {
+                    window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}`;
+                }, 60000);
             } else {
                 // Generate QR Code dynamically for Desktop or load custom QR URL
                 const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
