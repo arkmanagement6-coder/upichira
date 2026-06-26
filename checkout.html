@@ -508,9 +508,10 @@
                         } else if (selectedPaymentMethod === 'paytm') {
                             appUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
                         } else if (selectedPaymentMethod === 'gpay') {
+                            const tezUpiUri = `tez://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR`;
                             appUri = isAndroid 
-                                ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                : baseUpiUri;
+                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                                : tezUpiUri;
                         }
 
                         // Launch app

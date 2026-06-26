@@ -710,9 +710,10 @@
              // Setup app redirect URIs using native wallet deep links (tested & verified working 100% on both Android and iOS)
              const phonepeUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
              const paytmUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
+             const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
              const gpayUri = isAndroid 
-                 ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                 : baseUpiUri;
+                 ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                 : tezUpiUri;
 
             // Helper to launch UPI app and trigger redirect to order confirmation page after 800ms
             function launchUpiAndRedirect(appUri) {

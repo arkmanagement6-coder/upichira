@@ -278,9 +278,10 @@
                         appLabel = 'Paytm';
                         btnColor = '#00b9f5';
                     } else if (launchMethod === 'gpay') {
+                        const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                         targetUri = isAndroid 
-                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                            : baseUpiUri;
+                            ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                            : tezUpiUri;
                         appLabel = 'Google Pay';
                         btnColor = '#4285F4';
                     }
@@ -554,9 +555,10 @@
                                     appLabel = 'Paytm';
                                     btnColor = '#00b9f5';
                                 } else if (method === 'gpay') {
+                                    const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                                     targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                        : baseUpiUri;
+                                        ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                                        : tezUpiUri;
                                     appLabel = 'Google Pay';
                                     btnColor = '#4285F4';
                                 }
