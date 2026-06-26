@@ -695,7 +695,7 @@
 
                 // Render dynamic status changes
                 let actionsHtml = '';
-                if (o.status === 'pending_verification') {
+                if (o.status === 'pending_verification' || o.status === 'pending_payment') {
                     actionsHtml = `
                         <button class="btn btn-secondary" onclick="updateOrderStatus('${o.id}', 'pending')" style="background-color: var(--accent); color: white; border: none; margin-right: 5px; padding: 6px 12px;">Approve Payment</button>
                         <button class="btn btn-danger" onclick="updateOrderStatus('${o.id}', 'cancelled')" style="padding: 6px 12px;">Cancel</button>
