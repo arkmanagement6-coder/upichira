@@ -98,15 +98,15 @@
                     
                     <div class="payment-method-options-list">
                         
-                        <!-- PhonePe Payment Gateway Option -->
-                        <div class="payment-app-row-card active" id="card-phonepe" onclick="selectPaymentMethod('phonepe', true)">
+                        <!-- GPay Option -->
+                        <div class="payment-app-row-card active" id="card-gpay" onclick="selectPaymentMethod('gpay', true)">
                             <div class="app-info-left">
                                 <div class="app-logo">
-                                    <img src="Image/phonepe-logo.svg" alt="PhonePe" style="width: 100%; height: 100%; object-fit: contain;">
+                                    <img src="Image/google-pay-logo.svg" alt="Google Pay" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
                                 <div class="app-texts">
-                                    <span class="app-name">UPI - PhonePe</span>
-                                    <span class="app-sub">Pay directly using PhonePe app</span>
+                                    <span class="app-name">UPI - Google Pay (GPay)</span>
+                                    <span class="app-sub">Pay directly using GPay app</span>
                                 </div>
                             </div>
                             <div class="app-arrow-right">
@@ -130,15 +130,15 @@
                             </div>
                         </div>
 
-                        <!-- GPay Option -->
-                        <div class="payment-app-row-card" id="card-gpay" onclick="selectPaymentMethod('gpay', true)">
+                        <!-- PhonePe Payment Gateway Option -->
+                        <div class="payment-app-row-card" id="card-phonepe" onclick="selectPaymentMethod('phonepe', true)">
                             <div class="app-info-left">
                                 <div class="app-logo">
-                                    <img src="Image/google-pay-logo.svg" alt="Google Pay" style="width: 100%; height: 100%; object-fit: contain;">
+                                    <img src="Image/phonepe-logo.svg" alt="PhonePe" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
                                 <div class="app-texts">
-                                    <span class="app-name">UPI - Google Pay (GPay)</span>
-                                    <span class="app-sub">Pay directly using GPay app</span>
+                                    <span class="app-name">UPI - PhonePe</span>
+                                    <span class="app-sub">Pay directly using PhonePe app</span>
                                 </div>
                             </div>
                             <div class="app-arrow-right">
@@ -221,7 +221,7 @@
     <!-- Core Scripts -->
     <script src="app-core.js?v=20.0"></script>
     <script>
-        let selectedPaymentMethod = ''; // 'phonepe'
+        let selectedPaymentMethod = 'gpay'; // 'gpay'
         let currentWizardStep = 1;
 
         // Form wizard navigation
@@ -268,8 +268,8 @@
                 // Calculate pricing
                 renderCheckoutSummary();
 
-                // Pre-select PhonePe by default
-                selectPaymentMethod('phonepe');
+                // Pre-select GPay by default
+                selectPaymentMethod('gpay');
             }
         }
 
@@ -448,7 +448,7 @@
                 }
                 const settings = getSettings();
                 const upiId = settings.phonepeMerchantId || 's1955579688661043@slc';
-                const payeeName = settings.phonepeClientId || 'RAVI S DHAKRE';
+                const payeeName = settings.phonepeClientId || 'Lucky Jat';
 
                 const response = await fetch('/api/create-payment', {
                     method: 'POST',
@@ -477,7 +477,7 @@
                         
                         // Clean up name if it contains a client ID instead of a valid name
                         if (/^SU\d+/i.test(resolvedPayeeName) || resolvedPayeeName === 'SU2605131450590093051231') {
-                            resolvedPayeeName = 'RAVI S DHAKRE';
+                            resolvedPayeeName = 'Lucky Jat';
                         }
 
                         const isAndroid = /Android/i.test(navigator.userAgent);

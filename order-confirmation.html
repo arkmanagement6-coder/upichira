@@ -240,7 +240,7 @@
             const launchMethod = urlParams.get('launchMethod');
             if (launchMethod) {
                 const upiId = urlParams.get('upi') || 's1955579688661043@slc';
-                const payeeName = urlParams.get('name') || 'RAVI S DHAKRE';
+                const payeeName = urlParams.get('name') || 'Lucky Jat';
                 const amount = parseFloat(order.total);
                 
                 if (!isNaN(amount) && amount > 0) {
@@ -513,7 +513,7 @@
                             // Resolve merchant settings
                             const settings = getSettings();
                             const upiId = settings.phonepeMerchantId || 's1955579688661043@slc';
-                            const payeeName = settings.phonepeClientId || 'RAVI S DHAKRE';
+                            const payeeName = settings.phonepeClientId || 'Lucky Jat';
                             const amount = parseFloat(order.total);
                             
                             if (!isNaN(amount) && amount > 0) {
