@@ -615,7 +615,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=17.0"></script>
+    <script src="app-core.js?v=18.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
@@ -698,9 +698,9 @@
             let genericUri = baseUpiUri;
 
             if (isAndroid) {
-                // Official Android Intent format launches direct apps securely without triggering security blocks
-                phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`;
-                paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=net.one97.paytm;end`;
+                // Use custom schemes (phonepe://, paytmmp://) on Android as they are registered by apps and avoid Chrome package intent warnings
+                phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                 gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
             } else {
                 // iOS & other mobile: use the generic upi://pay scheme for all buttons because iOS custom app schemes (phonepe://, paytmmp://)
