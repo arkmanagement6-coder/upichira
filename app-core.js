@@ -107,23 +107,6 @@ window.trackPurchaseEvent = function(order) {
 
 const INITIAL_PRODUCTS = [
   {
-    "id": "trial_product_1rs",
-    "paymentLink": "https://rzp.io/rzp/tHlmofq",
-    "category": "gadgets",
-    "price": "Rs. 1.00",
-    "badge": "TRIAL",
-    "title": "1 Rs Trial Demo Product",
-    "image": "demo_cake.png",
-    "images": [
-      "demo_cake.png"
-    ],
-    "url": "/products/1-rs-trial-demo-product",
-    "stockStatus": "in-stock",
-    "handle": "1-rs-trial-demo-product",
-    "comparePrice": "Rs. 99.00",
-    "description": "This is a trial product priced at Rs. 1 for testing payments. / यह पेमेंट टेस्टिंग के लिए 1 रुपये का ट्रायल प्रोडक्ट है।"
-  },
-  {
     "id": "8270415000000",
     "paymentLink": "https://rzp.io/rzp/tHlmofq",
     "category": "tablets",
@@ -1244,8 +1227,11 @@ async function syncProductsBackground(forceSync = false) {
             }
             return p;
         });
-        if (updated) {
-            localStorage.setItem('ikko_products', JSON.stringify(products));
+        const oldProductsStr = localStorage.getItem('ikko_products');
+        const newProductsStr = JSON.stringify(products);
+        if (oldProductsStr !== newProductsStr || updated) {
+            localStorage.setItem('ikko_products', newProductsStr);
+            window.dispatchEvent(new CustomEvent('products-synced', { detail: products }));
         }
         return products;
     })();
