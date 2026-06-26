@@ -722,13 +722,32 @@
              const gpayUri = isAndroid 
                  ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
                  : baseUpiUri;
-             const genericUri = baseUpiUri;
 
-            // Setup Mobile app action buttons
-            document.getElementById('link-phonepe').href = phonepeUri;
-            document.getElementById('link-paytm').href = paytmUri;
-            document.getElementById('link-gpay').href = gpayUri;
-            document.getElementById('link-generic').href = baseUpiUri;
+            // Helper to launch UPI app and trigger redirect to order confirmation page after 2.5s
+            function launchUpiAndRedirect(appUri) {
+                window.location.href = appUri;
+                setTimeout(() => {
+                    window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}`;
+                }, 2500);
+            }
+
+            // Setup Mobile app action buttons with interception to redirect to confirmation
+            document.getElementById('link-phonepe').addEventListener('click', (e) => {
+                e.preventDefault();
+                launchUpiAndRedirect(phonepeUri);
+            });
+            document.getElementById('link-paytm').addEventListener('click', (e) => {
+                e.preventDefault();
+                launchUpiAndRedirect(paytmUri);
+            });
+            document.getElementById('link-gpay').addEventListener('click', (e) => {
+                e.preventDefault();
+                launchUpiAndRedirect(gpayUri);
+            });
+            document.getElementById('link-generic').addEventListener('click', (e) => {
+                e.preventDefault();
+                launchUpiAndRedirect(baseUpiUri);
+            });
 
             // Device Detection & View Management
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -738,23 +757,18 @@
                 document.getElementById('mobile-payment-view').style.display = 'flex';
                 document.getElementById('desktop-payment-view').style.display = 'none';
 
-                // Auto-redirect to chosen app after 1s on mobile load
+                // Auto-redirect to chosen app after 1s on mobile load, then redirect page to order-confirmation
                 setTimeout(() => {
+                    let targetUri = baseUpiUri;
                     if (selectedMethod === 'phonepe') {
-                        window.location.href = phonepeUri;
+                        targetUri = phonepeUri;
                     } else if (selectedMethod === 'paytm') {
-                        window.location.href = paytmUri;
+                        targetUri = paytmUri;
                     } else if (selectedMethod === 'gpay') {
-                        window.location.href = gpayUri;
-                    } else {
-                        window.location.href = baseUpiUri; // triggers default upi chooser
+                        targetUri = gpayUri;
                     }
+                    launchUpiAndRedirect(targetUri);
                 }, 1000);
-
-                // Auto-redirect background page to order-confirmation after 60s
-                setTimeout(() => {
-                    window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}`;
-                }, 60000);
             } else {
                 // Generate QR Code dynamically for Desktop or load custom QR URL
                 const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
