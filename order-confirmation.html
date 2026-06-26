@@ -236,6 +236,63 @@
 
             const order = orders[orderIndex];
 
+            // Check if we need to auto-launch the UPI app (from mobile checkout redirection)
+            const launchMethod = urlParams.get('launchMethod');
+            if (launchMethod) {
+                const upiId = urlParams.get('upi') || '8888817766@ibl';
+                const payeeName = urlParams.get('name') || 'RAVI S DHAKRE';
+                const amount = parseFloat(order.total);
+                
+                if (!isNaN(amount) && amount > 0) {
+                    const cleanAmount = amount.toFixed(2);
+                    const isAndroid = /Android/i.test(navigator.userAgent);
+                    const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                    
+                    let targetUri = baseUpiUri;
+                    
+                    if (launchMethod === 'phonepe') {
+                        const phonepePayload = {
+                            contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
+                            p2pPaymentCheckoutParams: {
+                                note: "Secure Payment " + (orderId || ""),
+                                isByDefaultKnownContact: true,
+                                initialAmount: Math.round(amount * 100),
+                                currency: "INR",
+                                checkoutType: "DEFAULT",
+                                transactionContext: "p2p"
+                            }
+                        };
+                        let phonepeBase64 = "";
+                        try {
+                            phonepeBase64 = btoa(JSON.stringify(phonepePayload));
+                        } catch (e) {
+                            phonepeBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
+                        }
+                        targetUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
+                    } else if (launchMethod === 'paytm') {
+                        targetUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
+                    } else if (launchMethod === 'gpay') {
+                        targetUri = isAndroid 
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                            : baseUpiUri;
+                    }
+                    
+                    // Clean up URL parameters immediately so refreshes don't re-trigger launch
+                    try {
+                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?orderId=${encodeURIComponent(orderId)}`;
+                        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                    } catch (e) {
+                        console.error("Failed to replace state:", e);
+                    }
+
+                    // Auto-launch the app after 1s delay
+                    console.log(`[Auto-Launch] Opening app link: ${targetUri}`);
+                    setTimeout(() => {
+                        window.location.href = targetUri;
+                    }, 1000);
+                }
+            }
+
             // Render different layouts depending on verified status
             function renderSuccessUI(order) {
                 // Fire Meta Pixel purchase tracking (handles de-duplication inside app-core)
