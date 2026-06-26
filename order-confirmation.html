@@ -236,6 +236,87 @@
 
             const order = orders[orderIndex];
 
+            // Check if we need to auto-launch the UPI app (from mobile checkout redirection)
+            const launchMethod = urlParams.get('launchMethod');
+            if (launchMethod) {
+                const upiId = urlParams.get('upi') || '8888817766@ibl';
+                const payeeName = urlParams.get('name') || 'RAVI S DHAKRE';
+                const amount = parseFloat(order.total);
+                
+                if (!isNaN(amount) && amount > 0) {
+                    const cleanAmount = amount.toFixed(2);
+                    const isAndroid = /Android/i.test(navigator.userAgent);
+                    const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                    
+                    let targetUri = baseUpiUri;
+                    let appLabel = 'UPI App';
+                    let btnColor = 'var(--primary)';
+                    
+                    if (launchMethod === 'phonepe') {
+                        const phonepePayload = {
+                            contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
+                            p2pPaymentCheckoutParams: {
+                                note: "Secure Payment " + (orderId || ""),
+                                isByDefaultKnownContact: true,
+                                initialAmount: Math.round(amount * 100),
+                                currency: "INR",
+                                checkoutType: "DEFAULT",
+                                transactionContext: "p2p"
+                            }
+                        };
+                        let phonepeBase64 = "";
+                        try {
+                            phonepeBase64 = btoa(JSON.stringify(phonepePayload));
+                        } catch (e) {
+                            phonepeBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
+                        }
+                        targetUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
+                        appLabel = 'PhonePe';
+                        btnColor = '#5f259f';
+                    } else if (launchMethod === 'paytm') {
+                        targetUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
+                        appLabel = 'Paytm';
+                        btnColor = '#00b9f5';
+                    } else if (launchMethod === 'gpay') {
+                        targetUri = isAndroid 
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                            : baseUpiUri;
+                        appLabel = 'Google Pay';
+                        btnColor = '#4285F4';
+                    }
+                    
+                    // Show prompt and configure the action button
+                    setTimeout(() => {
+                        const promptEl = document.getElementById('confirmation-mobile-payment-prompt');
+                        const btnEl = document.getElementById('confirmation-pay-btn');
+                        const titleEl = document.getElementById('confirmation-pay-title');
+                        
+                        if (promptEl && btnEl && titleEl) {
+                            promptEl.style.display = 'block';
+                            btnEl.href = targetUri;
+                            btnEl.innerText = `Pay via ${appLabel} / ऐप खोलें`;
+                            btnEl.style.backgroundColor = btnColor;
+                            btnEl.style.borderColor = btnColor;
+                            titleEl.innerText = `Opening ${appLabel}...`;
+                        }
+                    }, 100);
+
+                    // Clean up URL parameters immediately so refreshes don't re-trigger launch
+                    try {
+                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?orderId=${encodeURIComponent(orderId)}`;
+                        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                    } catch (e) {
+                        console.error("Failed to replace state:", e);
+                    }
+
+                    // Auto-launch the app after 1.5s delay (allows page resources and Pixel to load completely)
+                    setTimeout(() => {
+                        console.log(`[Auto-Launch] Attempting to open UPI app: ${targetUri}`);
+                        window.location.href = targetUri;
+                    }, 1500);
+                }
+            }
+
             // Render different layouts depending on verified status
             function renderSuccessUI(order) {
                 // Fire Meta Pixel purchase tracking (handles de-duplication inside app-core)
@@ -376,6 +457,15 @@
                             Your order <strong>${order.id}</strong> of <strong>${formatPrice(order.total)}</strong> is currently pending payment confirmation.
                         </p>
                         
+                        <!-- Mobile App Launch Button Box (Configured dynamically by JS) -->
+                        <div id="confirmation-mobile-payment-prompt" style="display: none; max-width: 420px; margin: 20px auto; background: #fffaf0; border: 1px solid #feebc8; padding: 20px; border-radius: 8px; text-align: center;">
+                            <h3 id="confirmation-pay-title" style="color: #dd6b20; font-family: var(--font-heading); margin-bottom: 8px; font-size: 1.05rem; font-weight: 700;">Opening Payment App...</h3>
+                            <p style="font-size: 0.85rem; color: #718096; margin-bottom: 15px; line-height: 1.4;">
+                                Please pay the amount in the payment app. If the app did not open automatically, tap the button below:
+                            </p>
+                            <a href="#" id="confirmation-pay-btn" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: inline-block;">Pay via App / ऐप खोलें</a>
+                        </div>
+
                         <div style="max-width: 420px; margin: 30px auto; background: var(--bg-main); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
                             <form onsubmit="handleUtrSubmission(event, '${order.id}')">
                                 <label for="utr-input" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">12-Digit UTR Number / UPI Ref No *</label>
