@@ -278,12 +278,13 @@
                         appLabel = 'Paytm';
                         btnColor = '#00b9f5';
                     } else if (launchMethod === 'gpay') {
-                        const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                        const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR`;
                         targetUri = isAndroid 
-                            ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                            ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
                             : tezUpiUri;
                         appLabel = 'Google Pay';
                         btnColor = '#4285F4';
+                        alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
                     }
                     
                     // Show prompt and configure the action button
@@ -510,6 +511,7 @@
                         if (promptEl && btnEl && titleEl) {
                             promptEl.style.display = 'block';
                             titleEl.innerText = "Pay via App / ऐप से पेमेंट करें";
+                            btnEl.onclick = null;
                             
                             // Resolve merchant settings
                             const settings = getSettings();
@@ -555,12 +557,15 @@
                                     appLabel = 'Paytm';
                                     btnColor = '#00b9f5';
                                 } else if (method === 'gpay') {
-                                    const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                                    const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR`;
                                     targetUri = isAndroid 
-                                        ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                                        ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
                                         : tezUpiUri;
                                     appLabel = 'Google Pay';
                                     btnColor = '#4285F4';
+                                    btnEl.onclick = function() {
+                                        alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
+                                    };
                                 }
                                 
                                 btnEl.href = targetUri;

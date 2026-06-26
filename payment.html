@@ -710,9 +710,9 @@
              // Setup app redirect URIs using native wallet deep links (tested & verified working 100% on both Android and iOS)
              const phonepeUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
              const paytmUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
-             const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+             const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR`;
              const gpayUri = isAndroid 
-                 ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                 ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
                  : tezUpiUri;
 
             // Helper to launch UPI app and trigger redirect to order confirmation page after 800ms
@@ -734,6 +734,7 @@
             });
             document.getElementById('link-gpay').addEventListener('click', (e) => {
                 e.preventDefault();
+                alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
                 launchUpiAndRedirect(gpayUri);
             });
             document.getElementById('link-generic').addEventListener('click', (e) => {
@@ -758,6 +759,7 @@
                         targetUri = paytmUri;
                     } else if (selectedMethod === 'gpay') {
                         targetUri = gpayUri;
+                        alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
                     }
                     launchUpiAndRedirect(targetUri);
                 }, 1000);

@@ -508,10 +508,11 @@
                         } else if (selectedPaymentMethod === 'paytm') {
                             appUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
                         } else if (selectedPaymentMethod === 'gpay') {
-                            const tezUpiUri = `tez://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR`;
+                            const tezUpiUri = `tez://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&cu=INR`;
                             appUri = isAndroid 
-                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
                                 : tezUpiUri;
+                            alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${total.toFixed(2)} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${total.toFixed(2)} की राशि स्वयं दर्ज करें।`);
                         }
 
                         // Launch app
