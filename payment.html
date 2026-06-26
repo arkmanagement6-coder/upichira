@@ -665,14 +665,6 @@
                 return;
             }
 
-            // Mobile Optimization: Immediately replace URL with order-confirmation.html containing launch parameters
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                const confirmationUrl = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}&launchMethod=${encodeURIComponent(selectedMethod)}&upi=${encodeURIComponent(upiId)}&name=${encodeURIComponent(payeeName)}`;
-                window.location.replace(confirmationUrl);
-                return;
-            }
-
             // Find order in local storage
             const orders = getOrders();
             const order = orders.find(o => o.id === orderId);

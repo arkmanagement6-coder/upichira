@@ -494,6 +494,80 @@
                         this.value = this.value.replace(/[^\d]/g, '').slice(0, 12);
                     });
                 }
+
+                // Configure mobile payment buttons on the UTR page for mobile users
+                const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const isSmallScreen = window.innerWidth <= 768;
+                const isMobileDevice = isMobileUA || isSmallScreen;
+                
+                if (isMobileDevice) {
+                    setTimeout(() => {
+                        const promptEl = document.getElementById('confirmation-mobile-payment-prompt');
+                        const btnEl = document.getElementById('confirmation-pay-btn');
+                        const titleEl = document.getElementById('confirmation-pay-title');
+                        
+                        if (promptEl && btnEl && titleEl) {
+                            promptEl.style.display = 'block';
+                            titleEl.innerText = "Pay via App / ऐप से पेमेंट करें";
+                            
+                            // Resolve merchant settings
+                            const settings = getSettings();
+                            const upiId = settings.phonepeMerchantId || '8888817766@ibl';
+                            const payeeName = settings.phonepeClientId || 'RAVI S DHAKRE';
+                            const amount = parseFloat(order.total);
+                            
+                            if (!isNaN(amount) && amount > 0) {
+                                const cleanAmount = amount.toFixed(2);
+                                const isAndroid = /Android/i.test(navigator.userAgent);
+                                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                                
+                                let targetUri = baseUpiUri;
+                                let appLabel = 'UPI App';
+                                let btnColor = 'var(--primary)';
+                                
+                                const method = order.paymentMethod || 'phonepe';
+                                
+                                if (method === 'phonepe') {
+                                    const phonepePayload = {
+                                        contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
+                                        p2pPaymentCheckoutParams: {
+                                            note: "Secure Payment " + (order.id || ""),
+                                            isByDefaultKnownContact: true,
+                                            initialAmount: Math.round(amount * 100),
+                                            currency: "INR",
+                                            checkoutType: "DEFAULT",
+                                            transactionContext: "p2p"
+                                        }
+                                    };
+                                    let phonepeBase64 = "";
+                                    try {
+                                        phonepeBase64 = btoa(JSON.stringify(phonepePayload));
+                                    } catch (e) {
+                                        phonepeBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
+                                    }
+                                    targetUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
+                                    appLabel = 'PhonePe';
+                                    btnColor = '#5f259f';
+                                } else if (method === 'paytm') {
+                                    targetUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer`;
+                                    appLabel = 'Paytm';
+                                    btnColor = '#00b9f5';
+                                } else if (method === 'gpay') {
+                                    targetUri = isAndroid 
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                                        : baseUpiUri;
+                                    appLabel = 'Google Pay';
+                                    btnColor = '#4285F4';
+                                }
+                                
+                                btnEl.href = targetUri;
+                                btnEl.innerText = `Open ${appLabel} / दोबारा ऐप खोलें`;
+                                btnEl.style.backgroundColor = btnColor;
+                                btnEl.style.borderColor = btnColor;
+                            }
+                        }
+                    }, 50);
+                }
             }
 
             window.handleUtrSubmission = async function(event, orderId) {
