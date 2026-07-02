@@ -1146,7 +1146,7 @@ async function syncProductsBackground(forceSync = false) {
                     }
 
                     // Save the migrated or seeded catalog to products_chunks
-                    const CHUNK_SIZE = 1;
+                    const CHUNK_SIZE = 100;
                     for (let i = 0; i < products.length; i += CHUNK_SIZE) {
                         const chunk = products.slice(i, i + CHUNK_SIZE);
                         await db.collection('products_chunks').doc(String(Math.floor(i / CHUNK_SIZE))).set({ products: cleanUndefinedFields(chunk) });
@@ -1291,7 +1291,7 @@ async function saveProducts(products, changedProduct = null) {
     if (db) {
         try {
             // Chunk products and write them to products_chunks collection
-            const CHUNK_SIZE = 1;
+            const CHUNK_SIZE = 100;
             const newChunkCount = Math.ceil(products.length / CHUNK_SIZE);
             
             for (let i = 0; i < products.length; i += CHUNK_SIZE) {
@@ -1344,7 +1344,7 @@ async function deleteProduct(productId) {
     if (db) {
         try {
             // Chunk products and write them to products_chunks collection
-            const CHUNK_SIZE = 1;
+            const CHUNK_SIZE = 100;
             const newChunkCount = Math.ceil(products.length / CHUNK_SIZE);
             
             for (let i = 0; i < products.length; i += CHUNK_SIZE) {
