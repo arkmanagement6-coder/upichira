@@ -18,21 +18,30 @@
     fbq('track', 'PageView');
     
     const runTracking = () => {
-        const noscript = document.createElement('noscript');
-        const img = document.createElement('img');
-        img.height = 1;
-        img.width = 1;
-        img.style.display = 'none';
-        img.src = `https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`;
-        noscript.appendChild(img);
-        document.body.appendChild(noscript);
-        
         // Track page-specific actions dynamically
         const path = window.location.pathname.toLowerCase();
         
         // Track Checkout Page (InitiateCheckout)
         if (path.includes('checkout.html') || path.endsWith('/checkout') || path.includes('/checkout?')) {
-            fbq('track', 'InitiateCheckout');
+            const cart = JSON.parse(localStorage.getItem('ikko_cart')) || [];
+            let totalVal = 0;
+            cart.forEach(item => {
+                let price = 999;
+                if (item.price) {
+                    const cleaned = String(item.price).replace(/[^\d.]/g, '');
+                    const parsed = parseFloat(cleaned);
+                    if (!isNaN(parsed)) price = parsed;
+                }
+                totalVal += price * item.qty;
+            });
+            
+            fbq('track', 'InitiateCheckout', {
+                value: totalVal,
+                currency: 'INR',
+                content_ids: cart.map(item => String(item.id)),
+                content_type: 'product',
+                num_items: cart.reduce((sum, item) => sum + item.qty, 0)
+            });
         }
         
         // Track Product Page (ViewContent)
@@ -70,9 +79,18 @@
 window.trackPurchaseEvent = function(order) {
     if (!order) return;
     
-    // Check if pixel was already fired to avoid double tracking on refreshes
-    if (order.pixelFired) {
+    // Check if pixel was already fired (on the order object or in local storage) to avoid double tracking
+    const orders = JSON.parse(localStorage.getItem('ikko_orders')) || [];
+    const localOrder = orders.find(o => o.id === order.id);
+    
+    if (order.pixelFired || (localOrder && localOrder.pixelFired)) {
         console.log(`[Pixel] Purchase event already fired for order ${order.id}. Skipping.`);
+        order.pixelFired = true;
+        // Make sure local storage is also marked
+        if (localOrder && !localOrder.pixelFired) {
+            localOrder.pixelFired = true;
+            localStorage.setItem('ikko_orders', JSON.stringify(orders));
+        }
         return;
     }
 
@@ -94,10 +112,12 @@ window.trackPurchaseEvent = function(order) {
         
         // Mark order as tracked in localStorage
         order.pixelFired = true;
-        const orders = JSON.parse(localStorage.getItem('ikko_orders')) || [];
         const idx = orders.findIndex(o => o.id === order.id);
         if (idx !== -1) {
             orders[idx] = order;
+            localStorage.setItem('ikko_orders', JSON.stringify(orders));
+        } else {
+            orders.push(order);
             localStorage.setItem('ikko_orders', JSON.stringify(orders));
         }
     } else {
@@ -1738,9 +1758,11 @@ function updateCartUI() {
     }
 }
 
+// Run database initialization immediately so that it is available for tracking and page rendering
+dbInit();
+
 // Auto-run on load
 window.addEventListener('DOMContentLoaded', () => {
-    dbInit();
     renderHeader();
     renderFooter();
 });

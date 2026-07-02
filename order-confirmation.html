@@ -638,15 +638,19 @@
                                  // Update in local storage
                                  const orders = getOrders();
                                  const idx = orders.findIndex(o => o.id === orderId);
+                                 let mergedOrder;
                                  if (idx !== -1) {
-                                     orders[idx] = updatedOrder;
+                                     // Preserve local-only properties like pixelFired
+                                     mergedOrder = { ...orders[idx], ...updatedOrder };
+                                     orders[idx] = mergedOrder;
                                  } else {
-                                     orders.push(updatedOrder);
+                                     mergedOrder = updatedOrder;
+                                     orders.push(mergedOrder);
                                  }
                                  localStorage.setItem('ikko_orders', JSON.stringify(orders));
                                  
                                  // Re-render confirmation screen dynamically
-                                 renderConfirmationScreen(updatedOrder);
+                                 renderConfirmationScreen(mergedOrder);
                              }
                          }, (err) => {
                              console.error("[Real-time] Order subscription error:", err);
