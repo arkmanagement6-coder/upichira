@@ -5,7 +5,7 @@
   "phonepeClientSecret": "cab34e32-8fb5-4d6d-94be-7bcccc16c8cb",
   "phonepeMode": "live",
   "customQrUrl": "",
-  "firebaseEnabled": false,
+  "firebaseEnabled": true,
   "firebaseConfig": {
     "apiKey": "AIzaSyBEA_951CCrsfl8JHkayubYjv3rTaDcsEI",
     "authDomain": "sabchira.firebaseapp.com",
