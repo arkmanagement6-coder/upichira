@@ -844,6 +844,15 @@ async function loadGlobalSettings() {
                 localStorage.setItem('ikko_settings', JSON.stringify(localSettings));
             }
             
+            // Migration: Reset old Firebase credentials in local settings if server has updated configuration
+            if (globalSettings.firebaseConfig && globalSettings.firebaseConfig.projectId) {
+                if (localSettings.firebaseConfig && localSettings.firebaseConfig.projectId !== globalSettings.firebaseConfig.projectId) {
+                    console.log("[Migration] Overwriting local Firebase config with new server config:", globalSettings.firebaseConfig.projectId);
+                    localSettings.firebaseConfig = globalSettings.firebaseConfig;
+                    localStorage.setItem('ikko_settings', JSON.stringify(localSettings));
+                }
+            }
+            
             // Merge settings: local overrides take precedence for admin convenience,
             // but empty local settings must NOT overwrite valid global settings.
             const mergedSettings = { ...globalSettings };
