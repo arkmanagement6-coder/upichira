@@ -6,6 +6,8 @@
         // Track page-specific actions dynamically
         const path = window.location.pathname.toLowerCase();
         
+        console.log(`[Pixel] Core tracking running for path: ${path}`);
+        
         // Track Checkout Page (InitiateCheckout)
         if (path.includes('checkout.html') || path.endsWith('/checkout') || path.includes('/checkout?')) {
             if (typeof fbq === 'function') {
@@ -21,6 +23,7 @@
                     totalVal += price * item.qty;
                 });
                 
+                console.log(`[Pixel] Firing InitiateCheckout with value Rs. ${totalVal} and ${cart.length} items`);
                 fbq('track', 'InitiateCheckout', {
                     value: totalVal,
                     currency: 'INR',
@@ -28,6 +31,8 @@
                     content_type: 'product',
                     num_items: cart.reduce((sum, item) => sum + item.qty, 0)
                 });
+            } else {
+                console.warn('[Pixel] fbq function not found. Could not track InitiateCheckout.');
             }
         }
         
@@ -37,20 +42,25 @@
             const productId = urlParams.get('id');
             const products = JSON.parse(localStorage.getItem('ikko_products')) || [];
             const prod = products.find(p => String(p.id) === String(productId));
-            if (prod && typeof fbq === 'function') {
-                let priceVal = 999;
-                if (prod.price) {
-                    const cleaned = String(prod.price).replace(/[^\d.]/g, '');
-                    const parsed = parseFloat(cleaned);
-                    if (!isNaN(parsed)) priceVal = parsed;
+            if (prod) {
+                if (typeof fbq === 'function') {
+                    let priceVal = 999;
+                    if (prod.price) {
+                        const cleaned = String(prod.price).replace(/[^\d.]/g, '');
+                        const parsed = parseFloat(cleaned);
+                        if (!isNaN(parsed)) priceVal = parsed;
+                    }
+                    console.log(`[Pixel] Firing ViewContent for product: ${prod.title} (ID: ${prod.id})`);
+                    fbq('track', 'ViewContent', {
+                        content_ids: [String(prod.id)],
+                        content_name: prod.title,
+                        content_type: 'product',
+                        value: priceVal,
+                        currency: 'INR'
+                    });
+                } else {
+                    console.warn('[Pixel] fbq function not found. Could not track ViewContent.');
                 }
-                fbq('track', 'ViewContent', {
-                    content_ids: [String(prod.id)],
-                    content_name: prod.title,
-                    content_type: 'product',
-                    value: priceVal,
-                    currency: 'INR'
-                });
             }
         }
     };
