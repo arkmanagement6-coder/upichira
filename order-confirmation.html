@@ -341,10 +341,6 @@
 
             // Render different layouts depending on verified status
             function renderSuccessUI(order) {
-                // Fire Meta Pixel purchase tracking (handles de-duplication inside app-core)
-                if (typeof window.trackPurchaseEvent === 'function') {
-                    window.trackPurchaseEvent(order);
-                }
 
                 const itemsHtml = order.items.map(item => `
                     <div class="confirmation-item">
@@ -679,13 +675,15 @@
                  }
              }
  
-             function renderConfirmationScreen(order) {
-                 // Fire Meta Pixel purchase tracking if not already fired, and order is not cancelled
-                 if (order.status !== 'cancelled' && order.utr !== 'Payment Failed') {
-                     if (typeof window.trackPurchaseEvent === 'function') {
-                         window.trackPurchaseEvent(order);
-                     }
-                 }
+              function renderConfirmationScreen(order) {
+                  // Fire Meta Pixel purchase tracking ONLY when UTR has been entered (pending_verification) or order is success/completed
+                  const hasUtr = order.utr && order.utr.trim() !== '' && !order.utr.toLowerCase().includes('pending') && order.utr !== 'Payment Failed';
+                  const isApproved = order.status === 'success' || order.status === 'completed';
+                  if (order.status !== 'cancelled' && (hasUtr || isApproved)) {
+                      if (typeof window.trackPurchaseEvent === 'function') {
+                          window.trackPurchaseEvent(order);
+                      }
+                  }
 
                  if (order.status === 'pending') {
                      renderSuccessUI(order);
