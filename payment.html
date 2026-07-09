@@ -739,7 +739,7 @@
             function launchUpiAndRedirect(appUri) {
                 window.location.href = appUri;
                 setTimeout(() => {
-                    window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}`);
+                    window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}&v=2.7`);
                 }, 800);
             }
 
@@ -930,7 +930,7 @@
                 }
 
                 // Redirect to success
-                window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}`;
+                window.location.href = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}&v=2.7`;
 
             } catch (err) {
                 console.error("Error saving completed order:", err);

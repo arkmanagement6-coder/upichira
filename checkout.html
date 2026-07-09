@@ -414,7 +414,7 @@
                         method: selectedPaymentMethod,
                         upi: upiId,
                         name: payeeName,
-                        redirectUrl: `${window.location.origin}/order-confirmation.html?orderId=${orderId}`
+                        redirectUrl: `${window.location.origin}/order-confirmation.html?orderId=${orderId}&v=2.7`
                     })
                 });
 
@@ -496,7 +496,7 @@
                                     appOpened = true;
                                     // If app opened successfully, redirect browser to order-confirmation page
                                     setTimeout(() => {
-                                        window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}`);
+                                        window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}&v=2.7`);
                                     }, 1000);
                                     document.removeEventListener('visibilitychange', handleVisibilityChange);
                                 }
