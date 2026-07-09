@@ -1530,6 +1530,7 @@ button, input, select, textarea {
     border: 1px solid var(--border-color);
     padding: 30px;
     box-shadow: var(--shadow-sm);
+    min-width: 0;
 }
 .admin-tab-section {
     display: none;
