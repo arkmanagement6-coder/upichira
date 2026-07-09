@@ -154,6 +154,11 @@
                         <span class="kpi-footer" id="kpi-utr-approved-count">Confirmed payments</span>
                     </div>
                     <div class="kpi-card" style="border-left: 4px solid #4a5568;">
+                        <span class="kpi-title">Total Orders</span>
+                        <span class="kpi-value" id="kpi-total-orders">0</span>
+                        <span class="kpi-footer">Placed in checkout</span>
+                    </div>
+                    <div class="kpi-card" style="border-left: 4px solid #718096;">
                         <span class="kpi-title">Active Inventory</span>
                         <span class="kpi-value" id="kpi-products-count">0</span>
                         <span class="kpi-footer">Products listed on store</span>
@@ -221,6 +226,10 @@
                     <div style="background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 12px 15px; display: flex; flex-direction: column; border-left: 4px solid #38a169;">
                         <span style="font-size: 0.8rem; color: #22543d; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-heading);">UTR Approved</span>
                         <span id="summary-utr-approved" style="font-size: 1.4rem; font-weight: 800; color: #22543d; margin-top: 5px;">Rs. 0.00</span>
+                    </div>
+                    <div style="background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; display: flex; flex-direction: column; border-left: 4px solid #718096;">
+                        <span style="font-size: 0.8rem; color: #4a5568; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-heading);">Total Orders</span>
+                        <span id="summary-total-orders" style="font-size: 1.4rem; font-weight: 800; color: #4a5568; margin-top: 5px;">0 orders</span>
                     </div>
                 </div>
 
@@ -634,6 +643,7 @@
                 appCountEl.innerText = `Confirmed payments (${utrApprovedCount} ${utrApprovedCount === 1 ? 'order' : 'orders'})`;
             }
 
+            document.getElementById('kpi-total-orders').innerText = orders.length;
             document.getElementById('kpi-products-count').innerText = activeProducts;
 
             // Render 5 recent activity orders
@@ -736,6 +746,10 @@
             }
             if (appEl) {
                 appEl.innerText = `${formatPrice(sumApproved)} (${countApproved} ${countApproved === 1 ? 'order' : 'orders'})`;
+            }
+            const totEl = document.getElementById('summary-total-orders');
+            if (totEl) {
+                totEl.innerText = `${filteredOrders.length} ${filteredOrders.length === 1 ? 'order' : 'orders'}`;
             }
 
             if (sortedOrders.length === 0) {
