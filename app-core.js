@@ -117,6 +117,18 @@ window.trackPurchaseEvent = function(order) {
             orders.push(order);
             localStorage.setItem('ikko_orders', JSON.stringify(orders));
         }
+        
+        // Sync pixelFired: true to Firestore to prevent duplicate tracking on other devices/sessions
+        const settings = getSettings();
+        if (settings.firebaseEnabled) {
+            initFirebase().then(db => {
+                if (db) {
+                    db.collection('orders').doc(order.id).update({ pixelFired: true })
+                      .then(() => console.log(`[Pixel] Synced pixelFired=true to Firestore for order ${order.id}`))
+                      .catch(e => console.error("Failed to sync pixelFired to Firestore:", e));
+                }
+            });
+        }
     } else {
         console.warn('[Pixel] fbq function not found. Could not track Purchase.');
     }

@@ -214,6 +214,44 @@
     <!-- Core Scripts -->
     <script src="app-core.js?v=20.0"></script>
     <script>
+        function compressImage(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+                reader.onerror = (err) => reject(err);
+            });
+        }
+
         async function renderConfirmation() {
             const card = document.getElementById('confirmation-content-card');
             if (!card) return;
@@ -491,7 +529,21 @@
                                        pattern="\\d{12}" maxLength="12" minLength="12"
                                        style="width: 100%; padding: 12px 15px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 1.05rem; font-family: monospace; letter-spacing: 1px; margin-bottom: 15px; box-sizing: border-box;"
                                        title="Please enter a valid 12-digit numeric UPI reference number.">
-                                <button type="submit" class="confirm-home-btn" style="width: 100%; border: none; cursor: pointer; padding: 12px; font-size: 1.05rem;">Submit UTR / यूटीआर सबमिट करें</button>
+                                
+                                <div style="margin-top: 15px; padding: 12px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 6px; margin-bottom: 15px;">
+                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 0; line-height: 1.4;">
+                                        ⚠️ WARNING: Entering a fake UTR will result in automatic cancellation of your order and permanent IP block.
+                                    </p>
+                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 5px 0 0 0; line-height: 1.4;">
+                                        ⚠️ चेतावनी: फर्जी UTR डालने पर ऑर्डर रद्द कर दिया जाएगा और आपका IP/मोबाइल हमेशा के लिए ब्लॉक कर दिया जाएगा।
+                                    </p>
+                                </div>
+
+                                <label for="utr-screenshot" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">Upload Payment Screenshot / स्क्रीनशॉट अपलोड करें *</label>
+                                <input type="file" id="utr-screenshot" accept="image/*" required
+                                       style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.9rem; margin-bottom: 20px; box-sizing: border-box; background: white;">
+
+                                <button type="submit" class="confirm-home-btn" id="utr-submit-btn" style="width: 100%; border: none; cursor: pointer; padding: 12px; font-size: 1.05rem;">Submit UTR / यूटीआर सबमिट करें</button>
                             </form>
                         </div>
 
@@ -602,31 +654,102 @@
                     return;
                 }
 
-                // Update in local storage
-                const orders = getOrders();
-                const idx = orders.findIndex(o => o.id === orderId);
-                if (idx !== -1) {
-                    orders[idx].status = 'pending_verification';
-                    orders[idx].utr = utr;
-                    localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                const fileInput = document.getElementById('utr-screenshot');
+                if (!fileInput || fileInput.files.length === 0) {
+                    alert("Please upload a payment screenshot / स्क्रीनशॉट अपलोड करें।");
+                    return;
                 }
 
-                // Sync to Firestore
+                const submitBtn = document.getElementById('utr-submit-btn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Processing & Syncing... / प्रोसेसिंग हो रही है...";
+                    submitBtn.style.opacity = "0.7";
+                }
+
+                // Check Local Duplicate
+                const orders = getOrders();
+                const isLocalDuplicate = orders.some(o => o.id !== orderId && o.utr === utr);
+                if (isLocalDuplicate) {
+                    alert("This UTR has already been submitted for another order. Please enter the correct UTR / यह UTR पहले ही उपयोग किया जा चुका है।");
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit UTR / यूटीआर सबमिट करें";
+                        submitBtn.style.opacity = "1";
+                    }
+                    return;
+                }
+
+                // Check Database Duplicate & Sync
                 if (window.settingsLoadingPromise) {
                     await window.settingsLoadingPromise;
                 }
                 const settings = getSettings();
+                let isDbDuplicate = false;
+
+                if (settings.firebaseEnabled) {
+                    const db = await initFirebase();
+                    if (db) {
+                        try {
+                            const snap = await db.collection('orders').where('utr', '==', utr).get();
+                            snap.forEach(doc => {
+                                if (doc.id !== orderId) {
+                                    isDbDuplicate = true;
+                                }
+                            });
+                        } catch (e) {
+                            console.error("[Confirmation] Failed to run database duplicate check:", e);
+                        }
+                    }
+                }
+
+                if (isDbDuplicate) {
+                    alert("This UTR has already been submitted for another order. Please enter the correct UTR / यह UTR पहले ही उपयोग किया जा चुका है।");
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit UTR / यूटीआर सबमिट करें";
+                        submitBtn.style.opacity = "1";
+                    }
+                    return;
+                }
+
+                // Compress image to Base64
+                let screenshotBase64 = '';
+                try {
+                    screenshotBase64 = await compressImage(fileInput.files[0], 500, 650, 0.4);
+                } catch (e) {
+                    console.error("[Confirmation] Image compression error:", e);
+                    alert("Failed to process the screenshot. Please try uploading another image / स्क्रीनशॉट लोड करने में विफलता।");
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit UTR / यूटीआर सबमिट करें";
+                        submitBtn.style.opacity = "1";
+                    }
+                    return;
+                }
+
+                // Update in local storage
+                const idx = orders.findIndex(o => o.id === orderId);
+                if (idx !== -1) {
+                    orders[idx].status = 'pending_verification';
+                    orders[idx].utr = utr;
+                    orders[idx].screenshot = screenshotBase64;
+                    localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                }
+
+                // Sync to Firestore
                 if (settings.firebaseEnabled) {
                     const db = await initFirebase();
                     if (db) {
                         try {
                             await db.collection('orders').doc(orderId).set({
                                 status: 'pending_verification',
-                                utr: utr
+                                utr: utr,
+                                screenshot: screenshotBase64
                             }, { merge: true });
-                            console.log("[Confirmation] Order UTR synced to Firestore successfully.");
+                            console.log("[Confirmation] Order UTR and Screenshot synced to Firestore successfully.");
                         } catch (e) {
-                            console.error("[Confirmation] Failed to sync UTR to Firestore:", e);
+                            console.error("[Confirmation] Failed to sync UTR/Screenshot to Firestore:", e);
                         }
                     }
                 }
@@ -678,7 +801,7 @@
               function renderConfirmationScreen(order) {
                   // Fire Meta Pixel purchase tracking ONLY when UTR has been entered (pending_verification) or order is success/completed
                   const hasUtr = order.utr && order.utr.trim() !== '' && !order.utr.toLowerCase().includes('pending') && order.utr !== 'Payment Failed';
-                  const isApproved = order.status === 'success' || order.status === 'completed';
+                  const isApproved = ['pending', 'success', 'delivered', 'completed'].includes(order.status);
                   if (order.status !== 'cancelled' && (hasUtr || isApproved)) {
                       if (typeof window.trackPurchaseEvent === 'function') {
                           window.trackPurchaseEvent(order);
