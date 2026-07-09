@@ -146,12 +146,12 @@
                     <div class="kpi-card" style="border-left: 4px solid #3182ce;">
                         <span class="kpi-title">UTR Submitted</span>
                         <span class="kpi-value" id="kpi-utr-submitted" style="color: #2b6cb0;">Rs. 0.00</span>
-                        <span class="kpi-footer">Awaiting verification</span>
+                        <span class="kpi-footer" id="kpi-utr-submitted-count">Awaiting verification</span>
                     </div>
                     <div class="kpi-card" style="border-left: 4px solid #38a169;">
                         <span class="kpi-title">UTR Approved</span>
                         <span class="kpi-value" id="kpi-utr-approved" style="color: #2f855a;">Rs. 0.00</span>
-                        <span class="kpi-footer">Confirmed payments</span>
+                        <span class="kpi-footer" id="kpi-utr-approved-count">Confirmed payments</span>
                     </div>
                     <div class="kpi-card" style="border-left: 4px solid #4a5568;">
                         <span class="kpi-title">Active Inventory</span>
@@ -612,22 +612,28 @@
             const products = await getProducts(true);
 
             // Calculate metrics
-            const utrSubmittedSum = orders
-                .filter(o => o.status === 'pending_verification')
-                .reduce((sum, o) => sum + o.total, 0);
+            const utrSubmittedOrders = orders.filter(o => o.status === 'pending_verification');
+            const utrSubmittedSum = utrSubmittedOrders.reduce((sum, o) => sum + o.total, 0);
+            const utrSubmittedCount = utrSubmittedOrders.length;
 
-            const utrApprovedSum = orders
-                .filter(o => ['pending', 'success', 'delivered', 'completed'].includes(o.status))
-                .reduce((sum, o) => sum + o.total, 0);
-
-            const utrPendingSum = orders
-                .filter(o => o.status === 'pending_payment')
-                .reduce((sum, o) => sum + o.total, 0);
+            const utrApprovedOrders = orders.filter(o => ['pending', 'success', 'delivered', 'completed'].includes(o.status));
+            const utrApprovedSum = utrApprovedOrders.reduce((sum, o) => sum + o.total, 0);
+            const utrApprovedCount = utrApprovedOrders.length;
 
             const activeProducts = products.length;
 
             document.getElementById('kpi-utr-submitted').innerText = formatPrice(utrSubmittedSum);
+            const subCountEl = document.getElementById('kpi-utr-submitted-count');
+            if (subCountEl) {
+                subCountEl.innerText = `Awaiting verification (${utrSubmittedCount} ${utrSubmittedCount === 1 ? 'order' : 'orders'})`;
+            }
+
             document.getElementById('kpi-utr-approved').innerText = formatPrice(utrApprovedSum);
+            const appCountEl = document.getElementById('kpi-utr-approved-count');
+            if (appCountEl) {
+                appCountEl.innerText = `Confirmed payments (${utrApprovedCount} ${utrApprovedCount === 1 ? 'order' : 'orders'})`;
+            }
+
             document.getElementById('kpi-products-count').innerText = activeProducts;
 
             // Render 5 recent activity orders
@@ -712,25 +718,25 @@
             // Sort orders by date descending
             const sortedOrders = filteredOrders.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-            // Calculate filtered sums
-            const sumSubmitted = filteredOrders
-                .filter(o => o.status === 'pending_verification')
-                .reduce((sum, o) => sum + o.total, 0);
+            // Calculate filtered sums and counts
+            const submittedOrders = filteredOrders.filter(o => o.status === 'pending_verification');
+            const sumSubmitted = submittedOrders.reduce((sum, o) => sum + o.total, 0);
+            const countSubmitted = submittedOrders.length;
 
-            const sumApproved = filteredOrders
-                .filter(o => ['pending', 'success', 'delivered', 'completed'].includes(o.status))
-                .reduce((sum, o) => sum + o.total, 0);
-
-            const sumPending = filteredOrders
-                .filter(o => o.status === 'pending_payment')
-                .reduce((sum, o) => sum + o.total, 0);
+            const approvedOrders = filteredOrders.filter(o => ['pending', 'success', 'delivered', 'completed'].includes(o.status));
+            const sumApproved = approvedOrders.reduce((sum, o) => sum + o.total, 0);
+            const countApproved = approvedOrders.length;
 
             // Update UI
             const subEl = document.getElementById('summary-utr-submitted');
             const appEl = document.getElementById('summary-utr-approved');
             
-            if (subEl) subEl.innerText = formatPrice(sumSubmitted);
-            if (appEl) appEl.innerText = formatPrice(sumApproved);
+            if (subEl) {
+                subEl.innerText = `${formatPrice(sumSubmitted)} (${countSubmitted} ${countSubmitted === 1 ? 'order' : 'orders'})`;
+            }
+            if (appEl) {
+                appEl.innerText = `${formatPrice(sumApproved)} (${countApproved} ${countApproved === 1 ? 'order' : 'orders'})`;
+            }
 
             if (sortedOrders.length === 0) {
                 container.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">No orders match the selected filters</td></tr>';
