@@ -134,7 +134,7 @@
                             </div>
                         </div>
 
-                        <!-- PhonePe Payment Gateway Option -->
+                        <!-- PhonePe Payment Option -->
                         <div class="payment-app-row-card" id="card-phonepe" onclick="selectPaymentMethod('phonepe', true)">
                             <div class="app-info-left">
                                 <div class="app-logo">
@@ -143,6 +143,101 @@
                                 <div class="app-texts">
                                     <span class="app-name">UPI - PhonePe</span>
                                     <span class="app-sub">Pay directly using PhonePe app</span>
+                                </div>
+                            </div>
+                            <div class="app-arrow-right">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </div>
+
+                        <!-- Google Pay Option -->
+                        <div class="payment-app-row-card" id="card-gpay" onclick="selectPaymentMethod('gpay', true)">
+                            <div class="app-info-left">
+                                <div class="app-logo">
+                                    <img src="Image/google-pay-logo.svg" alt="Google Pay" style="width: 100%; height: 100%; object-fit: contain;">
+                                </div>
+                                <div class="app-texts">
+                                    <span class="app-name">Google Pay</span>
+                                    <span class="app-sub">Pay directly using GPay app</span>
+                                </div>
+                            </div>
+                            <div class="app-arrow-right">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </div>
+
+                        <!-- BHIM Option -->
+                        <div class="payment-app-row-card" id="card-bhim" onclick="selectPaymentMethod('bhim', true)">
+                            <div class="app-info-left">
+                                <div class="app-logo" style="display: flex; align-items: center; justify-content: center; background: #f0f4f8; border-radius: 6px; padding: 4px;">
+                                    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                                        <polygon points="10,50 50,15 90,50 50,85" fill="none" stroke="#e67e22" stroke-width="8"/>
+                                        <polygon points="30,50 50,30 70,50 50,70" fill="#2ecc71"/>
+                                        <text x="50" y="55" font-family="sans-serif" font-weight="900" font-size="20" fill="#2c3e50" text-anchor="middle">BHIM</text>
+                                    </svg>
+                                </div>
+                                <div class="app-texts">
+                                    <span class="app-name">BHIM UPI</span>
+                                    <span class="app-sub">Pay directly using BHIM app</span>
+                                </div>
+                            </div>
+                            <div class="app-arrow-right">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </div>
+
+                        <!-- Amazon Pay Option -->
+                        <div class="payment-app-row-card" id="card-amazonpay" onclick="selectPaymentMethod('amazonpay', true)">
+                            <div class="app-info-left">
+                                <div class="app-logo" style="display: flex; align-items: center; justify-content: center; background: #111; border-radius: 6px; padding: 4px;">
+                                    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                                        <text x="35" y="65" font-family="sans-serif" font-weight="bold" font-size="55" fill="#fff" text-anchor="middle">a</text>
+                                        <path d="M25,75 Q50,90 75,75" fill="none" stroke="#ff9900" stroke-width="8" stroke-linecap="round"/>
+                                        <polygon points="75,75 70,68 78,70" fill="#ff9900"/>
+                                    </svg>
+                                </div>
+                                <div class="app-texts">
+                                    <span class="app-name">Amazon Pay</span>
+                                    <span class="app-sub">Pay directly using Amazon app</span>
+                                </div>
+                            </div>
+                            <div class="app-arrow-right">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </div>
+
+                        <!-- Mobikwik Option -->
+                        <div class="payment-app-row-card" id="card-mobikwik" onclick="selectPaymentMethod('mobikwik', true)">
+                            <div class="app-info-left">
+                                <div class="app-logo" style="display: flex; align-items: center; justify-content: center; background: #0059c3; border-radius: 6px; padding: 4px;">
+                                    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                                        <path d="M20,70 L20,30 L40,50 L60,30 L80,70" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="50" cy="70" r="8" fill="#00d2ff"/>
+                                    </svg>
+                                </div>
+                                <div class="app-texts">
+                                    <span class="app-name">Mobikwik</span>
+                                    <span class="app-sub">Pay directly using Mobikwik app</span>
+                                </div>
+                            </div>
+                            <div class="app-arrow-right">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </div>
+                        </div>
+
+                        <!-- Cred Option -->
+                        <div class="payment-app-row-card" id="card-cred" onclick="selectPaymentMethod('cred', true)">
+                            <div class="app-info-left">
+                                <div class="app-logo" style="display: flex; align-items: center; justify-content: center; background: #121212; border-radius: 6px; padding: 4px;">
+                                    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                                        <circle cx="50" cy="50" r="40" fill="none" stroke="#ffffff" stroke-width="4"/>
+                                        <path d="M65,40 C60,30 40,30 35,50 C30,70 50,70 65,60" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+                                        <circle cx="50" cy="50" r="6" fill="#00ffcc"/>
+                                    </svg>
+                                </div>
+                                <div class="app-texts">
+                                    <span class="app-name">Cred Pay</span>
+                                    <span class="app-sub">Pay directly using Cred app</span>
                                 </div>
                             </div>
                             <div class="app-arrow-right">
@@ -325,11 +420,7 @@
             // Toggle active card styles
             document.querySelectorAll('.payment-app-row-card').forEach(card => card.classList.remove('active'));
             
-            let cardId = '';
-            if (method === 'phonepe') cardId = 'card-phonepe';
-            else if (method === 'paytm') cardId = 'card-paytm';
-            else if (method === 'scanpay') cardId = 'card-scanpay';
-            else if (method === 'gpay') cardId = 'card-gpay';
+            const cardId = 'card-' + method;
             
             const selectedCard = document.getElementById(cardId);
             if (selectedCard) selectedCard.classList.add('active');
@@ -482,11 +573,9 @@
                         // Clean up name if it contains a client ID instead of a valid name
                         if (/^SU\d+/i.test(resolvedPayeeName) || resolvedPayeeName === 'SU2605131450590093051231') {
                             resolvedPayeeName = 'Lucky Jat';
-                        }
-
-                        const isAndroid = /Android/i.test(navigator.userAgent);
+                        }                        const isAndroid = /Android/i.test(navigator.userAgent);
                         const cleanAmount = total.toFixed(2);
-                        const baseUpiUri = `upi://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR`;
+                        const baseUpiUri = `upi://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                         
                         let appUri = baseUpiUri;
                         
@@ -510,22 +599,62 @@
                             }
                             appUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
                         } else if (selectedPaymentMethod === 'paytm') {
-                            appUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
+                            appUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(resolvedUpiId)}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
                         } else if (selectedPaymentMethod === 'gpay') {
-                            const tezUpiUri = `tez://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&cu=INR`;
+                            const tezUpiUri = `tez://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                             appUri = isAndroid 
-                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
                                 : tezUpiUri;
                             alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${total.toFixed(2)} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${total.toFixed(2)} की राशि स्वयं दर्ज करें।`);
+                        } else if (selectedPaymentMethod === 'bhim') {
+                            appUri = isAndroid 
+                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=bhim;package=in.org.npci.upiapp;end`
+                                : `bhim://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
+                        } else if (selectedPaymentMethod === 'amazonpay') {
+                            appUri = isAndroid 
+                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=amazon;package=com.amazon.mShop.android.shopping;end`
+                                : `amazon://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
+                        } else if (selectedPaymentMethod === 'mobikwik') {
+                            appUri = isAndroid 
+                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=mobikwik;package=com.mobikwik_new;end`
+                                : `mobikwik://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
+                        } else if (selectedPaymentMethod === 'cred') {
+                            appUri = isAndroid 
+                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=cred;package=com.dreamplug.androidapp;end`
+                                : `cred://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                         }
 
-                        // Launch app
-                        window.location.href = appUri;
+                        // Function to try launching app and fallback to payment.html if app is not present
+                        const launchAppWithFallback = (uri, fallbackUrl) => {
+                            let appOpened = false;
+                            
+                            // Monitor if browser goes to background (app opened successfully)
+                            const handleVisibilityChange = () => {
+                                if (document.hidden) {
+                                    appOpened = true;
+                                    // If app opened successfully, redirect browser to order-confirmation page
+                                    setTimeout(() => {
+                                        window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}`);
+                                    }, 1000);
+                                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                                }
+                            };
+                            document.addEventListener('visibilitychange', handleVisibilityChange);
 
-                        // Redirect browser tab to confirmation page immediately
-                        setTimeout(() => {
-                            window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}`);
-                        }, 250);
+                            // Set fallback timer (1.8 seconds) to redirect to payment.html if app did not open
+                            setTimeout(() => {
+                                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                                if (!appOpened) {
+                                    console.log("[DeepLink] App did not open. Redirecting to payment.html fallback.");
+                                    window.location.replace(fallbackUrl);
+                                }
+                            }, 1800);
+
+                            // Attempt to launch deep link
+                            window.location.href = uri;
+                        };
+
+                        launchAppWithFallback(appUri, result.redirectUrl);
                     } else {
                         // Desktop: Redirect to payment.html for QR code scanning
                         window.location.href = result.redirectUrl;
