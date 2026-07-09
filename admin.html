@@ -188,25 +188,25 @@
                 
                 <!-- KPI metrics cards row -->
                 <div class="kpi-cards-grid">
-                    <div class="kpi-card">
-                        <span class="kpi-title">Total Revenue</span>
-                        <span class="kpi-value" id="kpi-revenue">Rs. 0.00</span>
-                        <span class="kpi-footer">From completed deliveries</span>
+                    <div class="kpi-card" style="border-left: 4px solid #3182ce;">
+                        <span class="kpi-title">UTR Submitted</span>
+                        <span class="kpi-value" id="kpi-utr-submitted" style="color: #2b6cb0;">Rs. 0.00</span>
+                        <span class="kpi-footer">Awaiting verification</span>
                     </div>
-                    <div class="kpi-card">
-                        <span class="kpi-title">Total Orders</span>
-                        <span class="kpi-value" id="kpi-orders-count">0</span>
-                        <span class="kpi-footer">Placed in checkout</span>
+                    <div class="kpi-card" style="border-left: 4px solid #38a169;">
+                        <span class="kpi-title">UTR Approved</span>
+                        <span class="kpi-value" id="kpi-utr-approved" style="color: #2f855a;">Rs. 0.00</span>
+                        <span class="kpi-footer">Confirmed payments</span>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card" style="border-left: 4px solid #718096;">
+                        <span class="kpi-title">UTR Pending</span>
+                        <span class="kpi-value" id="kpi-utr-pending" style="color: #4a5568;">Rs. 0.00</span>
+                        <span class="kpi-footer">Awaiting customer UTR</span>
+                    </div>
+                    <div class="kpi-card" style="border-left: 4px solid #4a5568;">
                         <span class="kpi-title">Active Inventory</span>
                         <span class="kpi-value" id="kpi-products-count">0</span>
                         <span class="kpi-footer">Products listed on store</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-title">Pending Orders</span>
-                        <span class="kpi-value" id="kpi-pending-count" style="color: var(--accent-amber);">0</span>
-                        <span class="kpi-footer">Awaiting processing</span>
                     </div>
                 </div>
 
@@ -259,6 +259,22 @@
 
                     <div style="display: flex; flex-direction: column; gap: 5px; margin-top: auto;">
                         <button onclick="resetOrdersFilter()" style="padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 4px; font-size: 0.9rem; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;">Reset Filters</button>
+                    </div>
+                </div>
+
+                <!-- Filters Summary Row -->
+                <div class="orders-summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 8px; padding: 12px 15px; display: flex; flex-direction: column; border-left: 4px solid #3182ce;">
+                        <span style="font-size: 0.8rem; color: #2b6cb0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-heading);">UTR Submitted</span>
+                        <span id="summary-utr-submitted" style="font-size: 1.4rem; font-weight: 800; color: #2b6cb0; margin-top: 5px;">Rs. 0.00</span>
+                    </div>
+                    <div style="background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 12px 15px; display: flex; flex-direction: column; border-left: 4px solid #38a169;">
+                        <span style="font-size: 0.8rem; color: #22543d; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-heading);">UTR Approved</span>
+                        <span id="summary-utr-approved" style="font-size: 1.4rem; font-weight: 800; color: #22543d; margin-top: 5px;">Rs. 0.00</span>
+                    </div>
+                    <div style="background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; display: flex; flex-direction: column; border-left: 4px solid #718096;">
+                        <span style="font-size: 0.8rem; color: #4a5568; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-heading);">UTR Pending</span>
+                        <span id="summary-utr-pending" style="font-size: 1.4rem; font-weight: 800; color: #4a5568; margin-top: 5px;">Rs. 0.00</span>
                     </div>
                 </div>
 
@@ -648,20 +664,24 @@
             const products = await getProducts(true);
 
             // Calculate metrics
-            const totalOrders = orders.length;
-            const activeProducts = products.length;
-            
-            // Revenue only from Delivered orders
-            const totalRevenue = orders
-                .filter(o => o.status === 'delivered')
+            const utrSubmittedSum = orders
+                .filter(o => o.status === 'pending_verification')
                 .reduce((sum, o) => sum + o.total, 0);
 
-            const pendingOrders = orders.filter(o => o.status === 'pending').length;
+            const utrApprovedSum = orders
+                .filter(o => ['pending', 'success', 'delivered', 'completed'].includes(o.status))
+                .reduce((sum, o) => sum + o.total, 0);
 
-            document.getElementById('kpi-revenue').innerText = formatPrice(totalRevenue);
-            document.getElementById('kpi-orders-count').innerText = totalOrders;
+            const utrPendingSum = orders
+                .filter(o => o.status === 'pending_payment')
+                .reduce((sum, o) => sum + o.total, 0);
+
+            const activeProducts = products.length;
+
+            document.getElementById('kpi-utr-submitted').innerText = formatPrice(utrSubmittedSum);
+            document.getElementById('kpi-utr-approved').innerText = formatPrice(utrApprovedSum);
+            document.getElementById('kpi-utr-pending').innerText = formatPrice(utrPendingSum);
             document.getElementById('kpi-products-count').innerText = activeProducts;
-            document.getElementById('kpi-pending-count').innerText = pendingOrders;
 
             // Render 5 recent activity orders
             const recentContainer = document.getElementById('recent-orders-list');
@@ -744,6 +764,28 @@
 
             // Sort orders by date descending
             const sortedOrders = filteredOrders.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            // Calculate filtered sums
+            const sumSubmitted = filteredOrders
+                .filter(o => o.status === 'pending_verification')
+                .reduce((sum, o) => sum + o.total, 0);
+
+            const sumApproved = filteredOrders
+                .filter(o => ['pending', 'success', 'delivered', 'completed'].includes(o.status))
+                .reduce((sum, o) => sum + o.total, 0);
+
+            const sumPending = filteredOrders
+                .filter(o => o.status === 'pending_payment')
+                .reduce((sum, o) => sum + o.total, 0);
+
+            // Update UI
+            const subEl = document.getElementById('summary-utr-submitted');
+            const appEl = document.getElementById('summary-utr-approved');
+            const penEl = document.getElementById('summary-utr-pending');
+            
+            if (subEl) subEl.innerText = formatPrice(sumSubmitted);
+            if (appEl) appEl.innerText = formatPrice(sumApproved);
+            if (penEl) penEl.innerText = formatPrice(sumPending);
 
             if (sortedOrders.length === 0) {
                 container.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">No orders match the selected filters</td></tr>';
