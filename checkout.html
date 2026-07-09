@@ -117,14 +117,6 @@
                     <h3 class="price-details-title">Price Details</h3>
                     <div class="price-details-rows">
                         <div class="price-row">
-                            <span class="price-row-label">Original Price</span>
-                            <span class="price-row-value" id="price-original-sum">Rs. 0.00</span>
-                        </div>
-                        <div class="price-row highlight-green">
-                            <span class="price-row-label">Product Discount</span>
-                            <span class="price-row-value" id="price-discount-sum">-Rs. 0.00</span>
-                        </div>
-                        <div class="price-row">
                             <span class="price-row-label">Delivery Charges</span>
                             <span class="price-row-value text-green">FREE</span>
                         </div>
@@ -172,7 +164,6 @@
     <!-- Sticky Bottom Bar (For Mobile Layout) -->
     <div class="mobile-sticky-checkout-bar" id="sticky-bottom-action-bar">
         <div class="price-summary-left">
-            <span class="strikethrough-original" id="sticky-original-price">Rs. 0.00</span>
             <span class="final-price-bold" id="sticky-final-price">Rs. 0.00</span>
         </div>
         <button class="btn-orange-submit" onclick="handleOrangeOrderNowClick()">Pay Now</button>
@@ -334,12 +325,15 @@
             const discount = originalTotal - finalTotal;
 
             // Update main details
-            document.getElementById('price-original-sum').innerText = formatPrice(originalTotal);
-            document.getElementById('price-discount-sum').innerText = '-' + formatPrice(discount);
+            const origEl = document.getElementById('price-original-sum');
+            if (origEl) origEl.innerText = formatPrice(originalTotal);
+            const discEl = document.getElementById('price-discount-sum');
+            if (discEl) discEl.innerText = '-' + formatPrice(discount);
             document.getElementById('price-final-total').innerText = formatPrice(finalTotal);
 
             // Update bottom sticky bar
-            document.getElementById('sticky-original-price').innerText = formatPrice(originalTotal);
+            const stickyOrigEl = document.getElementById('sticky-original-price');
+            if (stickyOrigEl) stickyOrigEl.innerText = formatPrice(originalTotal);
             document.getElementById('sticky-final-price').innerText = formatPrice(finalTotal);
         }
 
