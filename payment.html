@@ -697,7 +697,7 @@
             // Generate UPI URIs
             const cleanAmount = amount.toFixed(2);
             // standard UPI Link: upi://pay?pa=address&pn=name&am=amount&cu=INR (Removed &tn= to avoid security blocks on P2P VPAs)
-            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
             
             // Device and OS Detection
             const isAndroid = /Android/i.test(navigator.userAgent);
@@ -850,7 +850,7 @@
                 
                 const settings = getSettings();
                 const cleanAmount = amount.toFixed(2);
-                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
+                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                 const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
                 document.getElementById('mobile-qr-image').src = qrCodeUrl;
             } else {
