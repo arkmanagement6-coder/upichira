@@ -2621,9 +2621,6 @@ button, input, select, textarea {
     }
 }
 @media (max-width: 768px) {
-    .desktop-checkout-action-wrap {
-        display: none;
-    }
     .mobile-sticky-checkout-bar.active-step2 {
         display: flex; /* Show sticky bar on mobile Step 2 */
     }
