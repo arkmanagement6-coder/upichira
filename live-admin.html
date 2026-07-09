@@ -812,6 +812,12 @@
                             </button>
                         </div>
                     `;
+                } else if (o.status === 'pending_verification') {
+                    screenshotBtnHtml = `
+                        <div style="margin-top: 6px; font-size: 0.75rem; color: #e53e3e; font-weight: 700; display: inline-block; padding: 2px 6px; background-color: #fff5f5; border: 1px solid #fed7d7; border-radius: 4px;">
+                            ⚠️ No Screenshot (Old Order)
+                        </div>
+                    `;
                 }
 
                 const customerHtml = `
