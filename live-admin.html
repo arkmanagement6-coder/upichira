@@ -642,15 +642,44 @@
                                       (o.paymentMethod === 'gpay' ? 'Google Pay' : 
                                       (o.paymentMethod === 'upi' ? 'UPI QR' : 'UPI')));
 
+                let utrBadgeHtml = '';
+                if (isUpi) {
+                    if (o.status === 'pending_verification') {
+                        // Customer submitted UTR, waiting for admin approval
+                        utrBadgeHtml = `
+                            <div style="margin-top: 6px; padding: 6px 10px; background-color: #ebf8ff; color: #2b6cb0; font-size: 0.8rem; border-radius: 4px; font-weight: 800; border: 1px solid #bee3f8; box-shadow: var(--shadow-sm);">
+                                🔔 Action Required: Verify UTR: <span style="font-size: 0.9rem; text-decoration: underline; color: #2c5282;">${o.utr}</span> (${providerLabel})
+                            </div>
+                        `;
+                    } else if (o.status === 'pending_payment') {
+                        // Customer hasn't submitted UTR yet
+                        utrBadgeHtml = `
+                            <div style="margin-top: 6px; padding: 4px 8px; background-color: #f7fafc; color: #4a5568; font-size: 0.8rem; border-radius: 4px; font-weight: 600; border: 1px solid #e2e8f0;">
+                                ⏳ Waiting for Payment (UTR Pending)
+                            </div>
+                        `;
+                    } else if (o.status === 'cancelled') {
+                        // Order cancelled
+                        utrBadgeHtml = `
+                            <div style="margin-top: 6px; padding: 4px 8px; background-color: #fed7d7; color: #9b2c2c; font-size: 0.8rem; border-radius: 4px; font-weight: 600; border: 1px solid #feb2b2;">
+                                ❌ Cancelled (UTR: ${o.utr || 'N/A'})
+                            </div>
+                        `;
+                    } else {
+                        // Approved / Delivered / Success
+                        utrBadgeHtml = `
+                            <div style="margin-top: 6px; padding: 4px 8px; background-color: #c6f6d5; color: #22543d; font-size: 0.8rem; border-radius: 4px; font-weight: 700; border: 1px solid #9ae6b4;">
+                                ✅ Approved (${providerLabel} UTR: ${o.utr})
+                            </div>
+                        `;
+                    }
+                }
+
                 const customerHtml = `
                     <strong>${o.customer.name}</strong><br>
                     📞 ${o.customer.phone}<br>
                     🏠 ${o.customer.address}, ${o.customer.city}, ${o.customer.state} - ${o.customer.pin}
-                    ${isUpi ? `
-                        <div style="margin-top: 6px; padding: 4px 8px; background-color: ${(o.utr === 'Real-Time Verified' || o.utr === 'Auto-Verified') ? '#c6f6d5' : '#feebc8'}; color: ${(o.utr === 'Real-Time Verified' || o.utr === 'Auto-Verified') ? '#22543d' : '#c05621'}; font-size: 0.8rem; border-radius: 4px; font-weight: 700; border: 1px solid ${(o.utr === 'Real-Time Verified' || o.utr === 'Auto-Verified') ? '#9ae6b4' : '#fbd38d'};">
-                            ${(o.utr === 'Real-Time Verified' || o.utr === 'Auto-Verified') ? `✅ Payment Confirmed (${providerLabel})` : `💳 ${providerLabel} UTR: ${o.utr || 'N/A'}`}
-                        </div>
-                    ` : ''}
+                    ${utrBadgeHtml}
                 `;
 
                 // Render dynamic status changes
