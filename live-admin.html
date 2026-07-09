@@ -190,6 +190,28 @@
                     <h1>Customer Orders Tracking</h1>
                 </div>
 
+                <!-- Filters Bar -->
+                <div class="orders-filter-bar" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border-color); align-items: center;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--primary); font-family: var(--font-heading);">Filter by Date</label>
+                        <input type="date" id="order-filter-date" onchange="applyOrdersFilter()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; color: #475569;">
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--primary); font-family: var(--font-heading);">Filter by UTR Status</label>
+                        <select id="order-filter-utr" onchange="applyOrdersFilter()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; color: #475569; background: white;">
+                            <option value="all">All Orders</option>
+                            <option value="submitted">UTR Submitted (Verify Required)</option>
+                            <option value="pending">UTR Pending (Unpaid)</option>
+                            <option value="approved">Payment Approved</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 5px; margin-top: auto;">
+                        <button onclick="resetOrdersFilter()" style="padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 4px; font-size: 0.9rem; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;">Reset Filters</button>
+                    </div>
+                </div>
+
                 <div class="table-wrapper">
                     <table class="admin-table">
                         <thead>
@@ -615,7 +637,6 @@
             `).join('');
         }
 
-        // Orders Tab Renderer
         function renderOrders() {
             const container = document.getElementById('admin-orders-list');
             if (!container) return;
@@ -626,8 +647,44 @@
                 return;
             }
 
+            // Read filter inputs
+            const filterDateEl = document.getElementById('order-filter-date');
+            const filterUtrEl = document.getElementById('order-filter-utr');
+            
+            const filterDate = filterDateEl ? filterDateEl.value : '';
+            const filterUtr = filterUtrEl ? filterUtrEl.value : 'all';
+
+            let filteredOrders = [...orders];
+
+            // 1. Apply Date Filter
+            if (filterDate) {
+                filteredOrders = filteredOrders.filter(o => {
+                    const localDateStr = new Date(o.date).toLocaleDateString('en-CA'); // YYYY-MM-DD
+                    return localDateStr === filterDate;
+                });
+            }
+
+            // 2. Apply UTR Status Filter
+            if (filterUtr !== 'all') {
+                filteredOrders = filteredOrders.filter(o => {
+                    if (filterUtr === 'submitted') {
+                        return o.status === 'pending_verification';
+                    } else if (filterUtr === 'pending') {
+                        return o.status === 'pending_payment';
+                    } else if (filterUtr === 'approved') {
+                        return ['pending', 'success', 'delivered', 'completed'].includes(o.status);
+                    }
+                    return true;
+                });
+            }
+
             // Sort orders by date descending
-            const sortedOrders = [...orders].sort((a,b) => new Date(b.date) - new Date(a.date));
+            const sortedOrders = filteredOrders.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            if (sortedOrders.length === 0) {
+                container.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">No orders match the selected filters</td></tr>';
+                return;
+            }
 
             container.innerHTML = sortedOrders.map(o => {
                 const itemsHtml = o.items.map(item => `
@@ -1279,7 +1336,17 @@
                 } catch (e) {
                     alert("Failed to restore database: " + e.message);
                 }
-            }
+        // Order filters helper functions
+        function applyOrdersFilter() {
+            renderOrders();
+        }
+
+        function resetOrdersFilter() {
+            const filterDateEl = document.getElementById('order-filter-date');
+            const filterUtrEl = document.getElementById('order-filter-utr');
+            if (filterDateEl) filterDateEl.value = '';
+            if (filterUtrEl) filterUtrEl.value = 'all';
+            renderOrders();
         }
     </script>
 </body>
