@@ -252,6 +252,11 @@
                         </select>
                     </div>
 
+                    <div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1; min-width: 200px;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--primary); font-family: var(--font-heading);">Search Orders</label>
+                        <input type="text" id="order-filter-search" oninput="applyOrdersFilter()" placeholder="Search by name, UTR, mobile, ID..." style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; color: #475569;">
+                    </div>
+
                     <div style="display: flex; flex-direction: column; gap: 5px; margin-top: auto;">
                         <button onclick="resetOrdersFilter()" style="padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 4px; font-size: 0.9rem; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s;">Reset Filters</button>
                     </div>
@@ -693,13 +698,29 @@
             // Read filter inputs
             const filterDateEl = document.getElementById('order-filter-date');
             const filterUtrEl = document.getElementById('order-filter-utr');
+            const filterSearchEl = document.getElementById('order-filter-search');
             
             const filterDate = filterDateEl ? filterDateEl.value : '';
             const filterUtr = filterUtrEl ? filterUtrEl.value : 'all';
+            const filterSearch = filterSearchEl ? filterSearchEl.value.trim().toLowerCase() : '';
 
             let filteredOrders = [...orders];
 
-            // 1. Apply Date Filter
+            // 1. Apply Search Filter (Name, UTR, Phone, Order ID)
+            if (filterSearch) {
+                filteredOrders = filteredOrders.filter(o => {
+                    const name = (o.customer.name || '').toLowerCase();
+                    const phone = (o.customer.phone || '').toLowerCase();
+                    const utr = (o.utr || '').toLowerCase();
+                    const orderId = (o.id || '').toLowerCase();
+                    return name.includes(filterSearch) || 
+                           phone.includes(filterSearch) || 
+                           utr.includes(filterSearch) || 
+                           orderId.includes(filterSearch);
+                });
+            }
+
+            // 2. Apply Date Filter
             if (filterDate) {
                 filteredOrders = filteredOrders.filter(o => {
                     const localDateStr = new Date(o.date).toLocaleDateString('en-CA'); // YYYY-MM-DD
@@ -1390,8 +1411,10 @@
         function resetOrdersFilter() {
             const filterDateEl = document.getElementById('order-filter-date');
             const filterUtrEl = document.getElementById('order-filter-utr');
+            const filterSearchEl = document.getElementById('order-filter-search');
             if (filterDateEl) filterDateEl.value = '';
             if (filterUtrEl) filterUtrEl.value = 'all';
+            if (filterSearchEl) filterSearchEl.value = '';
             renderOrders();
         }
     </script>
