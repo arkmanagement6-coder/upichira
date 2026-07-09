@@ -374,8 +374,8 @@
                 id: orderId,
                 date: new Date().toISOString(),
                 status: 'pending_payment',
-                paymentMethod: 'phonepe',
-                utr: 'Pending PhonePe',
+                paymentMethod: selectedPaymentMethod,
+                utr: 'Pending ' + (selectedPaymentMethod === 'paytm' ? 'Paytm' : 'PhonePe'),
                 customer: {
                     name,
                     phone,
