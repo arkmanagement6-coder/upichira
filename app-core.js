@@ -105,7 +105,7 @@ window.trackPurchaseEvent = function(order) {
             currency: 'INR',
             content_type: 'product',
             content_ids: order.items.map(item => String(item.id))
-        });
+        }, { eventID: order.id });
         
         // Mark order as tracked in localStorage
         order.pixelFired = true;

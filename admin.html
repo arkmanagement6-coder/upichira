@@ -911,6 +911,7 @@
             const orderIndex = orders.findIndex(o => o.id === orderId);
             if (orderIndex !== -1) {
                 const order = orders[orderIndex];
+                const oldStatus = order.status;
                 order.status = newStatus;
                 
                 localStorage.setItem('ikko_orders', JSON.stringify(orders));
@@ -927,6 +928,40 @@
                             console.error("Failed to sync order status to Firestore:", e);
                         }
                     }
+                }
+
+                // Fire Conversions API tracking if approved and not already fired
+                const approvalStatuses = ['pending', 'success', 'delivered', 'completed'];
+                if (approvalStatuses.includes(newStatus) && !order.pixelFired) {
+                    console.log(`[CAPI] Firing Conversions API Purchase tracking request for order: ${orderId}`);
+                    fetch('/api/track-purchase', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ order: order })
+                    }).then(res => res.json())
+                      .then(async (resData) => {
+                          if (resData.success) {
+                              console.log(`[CAPI] Order purchase successfully tracked via server.`);
+                              order.pixelFired = true;
+                              
+                              // Update LocalStorage
+                              localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                              
+                              // Sync pixelFired: true to Firestore
+                              if (settings.firebaseEnabled) {
+                                  const db = await initFirebase();
+                                  if (db) {
+                                      db.collection('orders').doc(orderId).update({ pixelFired: true })
+                                        .then(() => console.log("[CAPI] Synced pixelFired=true to Firestore."))
+                                        .catch(e => console.error("[CAPI] Failed to sync pixelFired to Firestore:", e));
+                                  }
+                              }
+                          } else {
+                              console.error(`[CAPI] Meta Conversions API failed:`, resData.message, resData.detail);
+                          }
+                      }).catch(err => {
+                          console.error("[CAPI] Network error tracking purchase:", err);
+                      });
                 }
                 
                 // Re-render the active tab

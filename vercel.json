@@ -10,6 +10,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/track-purchase.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "*.html",
       "use": "@vercel/static"
     },
@@ -38,6 +42,10 @@
     {
       "src": "/api/save-settings",
       "dest": "api/save-settings.js"
+    },
+    {
+      "src": "/api/track-purchase",
+      "dest": "api/track-purchase.js"
     },
     {
       "src": "/(.*)",
