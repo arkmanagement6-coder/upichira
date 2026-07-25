@@ -641,7 +641,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=26.0"></script>
+    <script src="app-core.js?v=27.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
@@ -707,18 +707,11 @@
              let paytmUri = "";
              let gpayUri = "";
              
-             const isAndroid = /Android/i.test(navigator.userAgent);
+             phonepeUri = `phonepe://pay?pa=${upiId}&pn=${payeeName}&am=${cleanAmount}&cu=INR`;
+             paytmUri = `paytmmp://pay?pa=${upiId}&pn=${payeeName}&am=${cleanAmount}&cu=INR&tn=${orderId || ""}`;
+             gpayUri = `tez://upi/pay?pa=${upiId}&pn=${payeeName}&am=${cleanAmount}&cu=INR`;
              
-             if (isAndroid) {
-                 phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015#Intent;scheme=upi;package=com.phonepe.app;end`;
-                 paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                 gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-             } else {
-                 phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
-                 paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
-                 gpayUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
-             }
-            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
+             const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
 
             // Helper to launch UPI app and trigger redirect to order confirmation page after 800ms
             function launchUpiAndRedirect(appUri) {
