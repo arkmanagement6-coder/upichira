@@ -310,7 +310,7 @@
             // Check if we need to auto-launch the UPI app (from mobile checkout redirection)
             const launchMethod = urlParams.get('launchMethod');
             if (launchMethod) {
-                const upiId = urlParams.get('upi') || 's1955579688661043@slc';
+                const upiId = urlParams.get('upi') || '1991083V5V@mairtel';
                 const payeeName = urlParams.get('name') || 'Lucky Jat';
                 const amount = parseFloat(order.total);
                 
@@ -349,13 +349,11 @@
                         appLabel = 'Paytm';
                         btnColor = '#00b9f5';
                     } else if (launchMethod === 'gpay') {
-                        const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR`;
                         targetUri = isAndroid 
-                            ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
-                            : tezUpiUri;
+                            ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                            : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
                         appLabel = 'Google Pay';
                         btnColor = '#4285F4';
-                        alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
                     }
                     
                     // Show prompt and configure the action button
@@ -596,7 +594,7 @@
                             
                             // Resolve merchant settings
                             const settings = getSettings();
-                            const upiId = settings.phonepeMerchantId || 's1955579688661043@slc';
+                            const upiId = settings.phonepeMerchantId || '1991083V5V@mairtel';
                             const payeeName = settings.phonepeClientId || 'Lucky Jat';
                             const amount = parseFloat(order.total);
                             
@@ -638,15 +636,12 @@
                                     appLabel = 'Paytm';
                                     btnColor = '#00b9f5';
                                 } else if (method === 'gpay') {
-                                    const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR`;
                                     targetUri = isAndroid 
-                                        ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
-                                        : tezUpiUri;
+                                        ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                                        : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
                                     appLabel = 'Google Pay';
                                     btnColor = '#4285F4';
-                                    btnEl.onclick = function() {
-                                        alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
-                                    };
+                                    btnEl.onclick = null;
                                 }
                                 
                                 btnEl.href = targetUri;

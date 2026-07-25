@@ -564,7 +564,7 @@
                         If PhonePe/GPay shows a security error, copy the UPI ID below, open your payment app, transfer the money manually, and paste the UTR.
                     </div>
                     <div style="display: flex; gap: 8px; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 1rem; color: #fff; margin-bottom: 10px;">
-                        <span id="manual-upi-id-text">s1955579688661043@slc</span>
+                        <span id="manual-upi-id-text">1991083V5V@mairtel</span>
                         <button onclick="copyManualUpiId()" style="background: var(--accent); color: white; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">Copy ID</button>
                     </div>
                     <div style="font-size: 0.8rem; color: var(--accent-green); display: none; margin-bottom: 12px;" id="upi-copied-alert">✓ UPI ID Copied! / कॉपी हो गया!</div>
@@ -639,7 +639,7 @@
     <script>
         let orderId = '';
         let amount = 0;
-        let upiId = 's1955579688661043@slc';
+        let upiId = '1991083V5V@mairtel';
         let payeeName = 'Lucky Jat';
         let selectedMethod = '';
 
@@ -730,10 +730,9 @@
              // Setup app redirect URIs using native wallet deep links (tested & verified working 100% on both Android and iOS)
              const phonepeUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
              const paytmUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
-             const tezUpiUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR`;
              const gpayUri = isAndroid 
-                 ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
-                 : tezUpiUri;
+                  ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                  : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
 
             // Helper to launch UPI app and trigger redirect to order confirmation page after 800ms
             function launchUpiAndRedirect(appUri) {
@@ -754,7 +753,6 @@
             });
             document.getElementById('link-gpay').addEventListener('click', (e) => {
                 e.preventDefault();
-                alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
                 launchUpiAndRedirect(gpayUri);
             });
             document.getElementById('link-generic').addEventListener('click', (e) => {
