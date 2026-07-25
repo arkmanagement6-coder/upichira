@@ -777,7 +777,6 @@
                         targetUri = paytmUri;
                     } else if (selectedMethod === 'gpay') {
                         targetUri = gpayUri;
-                        alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${cleanAmount} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${cleanAmount} की राशि स्वयं दर्ज करें।`);
                     }
                     launchUpiAndRedirect(targetUri);
                 }, 1000);

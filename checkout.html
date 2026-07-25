@@ -517,7 +517,6 @@
                             appUri = isAndroid 
                                 ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
                                 : tezUpiUri;
-                            alert(`Google Pay is opening.\n\n👉 Please enter the amount Rs. ${total.toFixed(2)} manually in GPay.\n\n👉 गूगल पे खुलने पर कृपया ₹${total.toFixed(2)} की राशि स्वयं दर्ज करें।`);
                         } else if (selectedPaymentMethod === 'bhim') {
                             appUri = isAndroid 
                                 ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=bhim;package=in.org.npci.upiapp;end`
