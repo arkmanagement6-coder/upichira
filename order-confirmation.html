@@ -311,7 +311,7 @@
             const launchMethod = urlParams.get('launchMethod');
             if (launchMethod) {
                 const upiId = urlParams.get('upi') || '1991083V5V@mairtel';
-                const payeeName = urlParams.get('name') || 'Bhalani Nandlal Madhavajibhai';
+                const payeeName = urlParams.get('name') || 'Bhalani Nandlal Madhavajibhai ';
                 const amount = parseFloat(order.total);
                 
                 if (!isNaN(amount) && amount > 0) {
@@ -582,7 +582,7 @@
                             // Resolve merchant settings
                             const settings = getSettings();
                             const upiId = settings.phonepeMerchantId || '1991083V5V@mairtel';
-                            const payeeName = settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai';
+                            const payeeName = settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai ';
                             const amount = parseFloat(order.total);
                             
                             if (!isNaN(amount) && amount > 0) {

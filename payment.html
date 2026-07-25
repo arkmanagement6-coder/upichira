@@ -561,7 +561,13 @@
                         💡 app-redirect not working? (सिक्योरिटी ब्लॉक एरर आने पर)
                     </div>
                     <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 12px; line-height: 1.4;">
-                        If PhonePe/GPay shows a security error, copy the UPI ID below, open your payment app, transfer the money manually, and paste the UTR.
+                        If PhonePe/GPay shows a security error, take a screenshot of this QR and scan it from gallery inside PhonePe/GPay / अगर ऐप बटन काम न करे, तो इसका स्क्रीनशॉट लेकर ऐप में स्कैन करें:
+                    </div>
+                    <div style="margin-bottom: 15px; display: flex; justify-content: center;">
+                        <img id="mobile-qr-image" src="" alt="UPI QR Code" style="width: 180px; height: 180px; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-radius: 8px; background: white;">
+                    </div>
+                    <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 12px; line-height: 1.4;">
+                        Or copy the UPI ID below, transfer the money manually, and paste the UTR.
                     </div>
                     <div style="display: flex; gap: 8px; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 1rem; color: #fff; margin-bottom: 10px;">
                         <span id="manual-upi-id-text">1991083V5V@mairtel</span>
@@ -760,11 +766,12 @@
                     }
                     launchUpiAndRedirect(targetUri);
                 }, 1000);
-            } else {
-                // Generate QR Code dynamically for Desktop or load custom QR URL
-                const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
-                document.getElementById('dynamic-qr-image').src = qrCodeUrl;
-            }
+            // Generate QR Code dynamically or load custom QR URL
+            const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
+            const desktopQrImg = document.getElementById('dynamic-qr-image');
+            if (desktopQrImg) desktopQrImg.src = qrCodeUrl;
+            const mobileQrImg = document.getElementById('mobile-qr-image');
+            if (mobileQrImg) mobileQrImg.src = qrCodeUrl;
 
             // Populate manual UPI VPA text
             const manualTextEl = document.getElementById('manual-upi-id-text');
