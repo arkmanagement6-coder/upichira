@@ -209,7 +209,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=25.0"></script>
+    <script src="app-core.js?v=26.0"></script>
     <script>
         let selectedPaymentMethod = 'paytm'; // 'paytm'
         let currentWizardStep = 1;
@@ -475,7 +475,7 @@
                     const isMobile = isMobileUA || isSmallScreen;
 
                     if (isMobile) {
-                        if (selectedPaymentMethod === 'scanpay') {
+                        if (selectedPaymentMethod === 'scanpay' || selectedPaymentMethod === 'phonepe' || selectedPaymentMethod === 'gpay') {
                             window.location.href = result.redirectUrl;
                             return;
                         }

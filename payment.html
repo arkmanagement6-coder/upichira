@@ -530,7 +530,7 @@
 
             <!-- Mobile View: App Launch Buttons -->
             <div class="mobile-apps-container" id="mobile-payment-view">
-                <div class="mobile-instruction">Choose UPI App to Pay:</div>
+                <div class="mobile-instruction" id="mobile-payment-instruction">Choose UPI App to Pay:</div>
                 
                 <!-- PhonePe Redirect -->
                 <a href="#" class="upi-app-btn phonepe" id="link-phonepe">
@@ -641,7 +641,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=25.0"></script>
+    <script src="app-core.js?v=26.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
@@ -754,18 +754,23 @@
                 document.getElementById('mobile-payment-view').style.display = 'flex';
                 document.getElementById('desktop-payment-view').style.display = 'none';
 
-                // Auto-redirect to chosen app after 1s on mobile load, then redirect page to order-confirmation
-                setTimeout(() => {
-                    let targetUri = baseUpiUri;
-                    if (selectedMethod === 'phonepe') {
-                        targetUri = phonepeUri;
-                    } else if (selectedMethod === 'paytm') {
-                        targetUri = paytmUri;
-                    } else if (selectedMethod === 'gpay') {
-                        targetUri = gpayUri;
+                // Update instruction text for PhonePe/GPay to guide user to scan QR screenshot
+                const instructionEl = document.getElementById('mobile-payment-instruction');
+                if (selectedMethod === 'phonepe' || selectedMethod === 'gpay') {
+                    if (instructionEl) {
+                        instructionEl.innerHTML = `<span style="color:#ffb74d; font-weight:bold; font-size:1.05rem;">⚠️ Airtel Pay Security Block / एयरटेल सुरक्षा ब्लॉक:</span><br><div style="margin-top:6px; font-size:0.9rem; color:#fff; text-align:left; line-height:1.4;">Direct opening of PhonePe/GPay is blocked by Airtel Payments Bank. Please <strong>take a screenshot of the QR code below</strong> and scan it from gallery in PhonePe/GPay to pay safely, or click Paytm below to pay instantly.<br><br>एयरटेल पेमेंट बैंक द्वारा डायरेक्ट PhonePe/GPay खोलना ब्लॉक है। कृपया <strong>नीचे दिए गए QR कोड का स्क्रीनशॉट लें</strong> और पेमेंट करने के लिए अपने ऐप में गैलरी से स्कैन करें, या तुरंत पेमेंट करने के लिए नीचे Paytm पर क्लिक करें।</div>`;
+                        instructionEl.style.marginBottom = '20px';
                     }
-                    launchUpiAndRedirect(targetUri);
-                }, 1000);
+                }
+
+                // Auto-redirect to Paytm only if selected (since Paytm works instantly without bank declines)
+                if (selectedMethod === 'paytm') {
+                    setTimeout(() => {
+                        launchUpiAndRedirect(paytmUri);
+                    }, 1000);
+                }
+            }
+
             // Generate QR Code dynamically or load custom QR URL
             const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
             const desktopQrImg = document.getElementById('dynamic-qr-image');
