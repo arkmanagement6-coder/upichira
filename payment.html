@@ -641,7 +641,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=24.0"></script>
+    <script src="app-core.js?v=25.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
@@ -710,13 +710,13 @@
              const isAndroid = /Android/i.test(navigator.userAgent);
              
              if (isAndroid) {
-                 phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.phonepe.app;end`;
+                 phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015#Intent;scheme=upi;package=com.phonepe.app;end`;
                  paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                 gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+                 gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
              } else {
-                 phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000`;
+                 phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
                  paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
-                 gpayUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000`;
+                 gpayUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
              }
             const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
 
