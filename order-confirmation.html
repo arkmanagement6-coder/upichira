@@ -212,7 +212,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=28.0"></script>
+    <script src="app-core.js?v=29.0"></script>
     <script>
         function compressImage(file, maxWidth, maxHeight, quality) {
             return new Promise((resolve, reject) => {
@@ -317,7 +317,7 @@
                 if (!isNaN(amount) && amount > 0) {
                     const cleanAmount = amount.toFixed(2);
                     const isAndroid = /Android/i.test(navigator.userAgent);
-                    const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
+                    const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                     
                     let targetUri = baseUpiUri;
                     let appLabel = 'UPI App';
@@ -325,20 +325,20 @@
                     
                     if (launchMethod === 'phonepe') {
                         targetUri = isAndroid 
-                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015#Intent;scheme=upi;package=com.phonepe.app;end`
-                            : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015`;
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`
+                            : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                         appLabel = 'PhonePe';
                         btnColor = '#5f259f';
                     } else if (launchMethod === 'paytm') {
                         targetUri = isAndroid 
-                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015#Intent;scheme=upi;package=net.one97.paytm;end`
-                            : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015`;
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`
+                            : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
                         appLabel = 'Paytm';
                         btnColor = '#00b9f5';
                     } else if (launchMethod === 'gpay') {
                         targetUri = isAndroid 
-                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                            : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015`;
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                            : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                         appLabel = 'Google Pay';
                         btnColor = '#4285F4';
                     }
@@ -588,7 +588,7 @@
                             if (!isNaN(amount) && amount > 0) {
                                 const cleanAmount = amount.toFixed(2);
                                 const isAndroid = /Android/i.test(navigator.userAgent);
-                                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
+                                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                                 
                                 let targetUri = baseUpiUri;
                                 let appLabel = 'UPI App';
@@ -599,20 +599,20 @@
                                 
                                 if (method === 'phonepe') {
                                     targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${order.id}&tn=${order.id}&mode=02&orgid=159015#Intent;scheme=upi;package=com.phonepe.app;end`
-                                        : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${order.id}&tn=${order.id}&mode=02&orgid=159015`;
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`
+                                        : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                                     appLabel = 'PhonePe';
                                     btnColor = '#5f259f';
                                 } else if (method === 'paytm') {
                                     targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${order.id}&tn=${order.id}&mode=02&orgid=159015#Intent;scheme=upi;package=net.one97.paytm;end`
-                                        : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${order.id}&tn=${order.id}&mode=02&orgid=159015`;
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=upi;package=net.one97.paytm;end`
+                                        : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
                                     appLabel = 'Paytm';
                                     btnColor = '#00b9f5';
                                 } else if (method === 'gpay') {
                                     targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${order.id}&tn=${order.id}&mode=02&orgid=159015#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                        : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tr=${order.id}&tn=${order.id}&mode=02&orgid=159015`;
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                                        : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                                     appLabel = 'Google Pay';
                                     btnColor = '#4285F4';
                                     btnEl.onclick = null;
@@ -855,7 +855,7 @@
                             if (!isNaN(amount) && amount > 0) {
                                 const cleanAmount = amount.toFixed(2);
                                 const isAndroid = /Android/i.test(navigator.userAgent);
-                                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
+                                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                                 
                                 let targetUri = baseUpiUri;
                                 let appLabel = 'UPI App';
@@ -866,8 +866,8 @@
                                 
                                 if (method === 'phonepe') {
                                     targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015#Intent;scheme=upi;package=com.phonepe.app;end`
-                                        : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`
+                                        : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                                     appLabel = 'PhonePe';
                                     btnColor = '#5f259f';
                                 } else if (method === 'paytm') {
@@ -878,8 +878,8 @@
                                     btnColor = '#00b9f5';
                                 } else if (method === 'gpay') {
                                     targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                        : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mode=02&orgid=159015`;
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                                        : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
                                     appLabel = 'Google Pay';
                                     btnColor = '#4285F4';
                                     btnEl.onclick = null;
