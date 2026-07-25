@@ -112,6 +112,42 @@
                     </div>
                 </div>
 
+                <!-- Payment Method Selector Card -->
+                <div class="checkout-card" style="margin-top: 20px;">
+                    <h3 class="price-details-title" style="margin-bottom: 15px;">Select Payment App / पेमेंट ऐप चुनें</h3>
+                    <div class="payment-apps-list" style="display: flex; flex-direction: column; gap: 10px;">
+                        
+                        <!-- Paytm Option -->
+                        <div class="payment-app-row-card" id="card-paytm" onclick="selectPaymentMethod('paytm')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="radio" name="payment-option" id="radio-paytm" checked style="width: 18px; height: 18px; accent-color: var(--accent);">
+                                <img src="Image/paytm-logo.svg" alt="Paytm" style="height: 20px; width: auto; object-fit: contain;">
+                                <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">Paytm</span>
+                            </div>
+                            <span style="font-size: 0.75rem; background: var(--accent-green); color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">⚡ Fast</span>
+                        </div>
+
+                        <!-- PhonePe Option -->
+                        <div class="payment-app-row-card" id="card-phonepe" onclick="selectPaymentMethod('phonepe')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="radio" name="payment-option" id="radio-phonepe" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                                <img src="Image/phonepe-logo.svg" alt="PhonePe" style="height: 20px; width: auto; object-fit: contain;">
+                                <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">PhonePe</span>
+                            </div>
+                        </div>
+
+                        <!-- Google Pay Option -->
+                        <div class="payment-app-row-card" id="card-gpay" onclick="selectPaymentMethod('gpay')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="radio" name="payment-option" id="radio-gpay" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                                <img src="Image/google-pay-logo.svg" alt="Google Pay" style="height: 20px; width: auto; object-fit: contain;">
+                                <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">Google Pay</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
                 <!-- Price Details Block (Matches screenshot block) -->
                 <div class="checkout-card" style="margin-top: 20px;">
                     <h3 class="price-details-title">Price Details</h3>
@@ -273,12 +309,26 @@
             selectedPaymentMethod = method;
             
             // Toggle active card styles
-            document.querySelectorAll('.payment-app-row-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.payment-app-row-card').forEach(card => {
+                card.classList.remove('active');
+                card.style.borderColor = 'var(--border-color)';
+                card.style.background = 'rgba(255, 255, 255, 0.02)';
+            });
             
             const cardId = 'card-' + method;
-            
             const selectedCard = document.getElementById(cardId);
-            if (selectedCard) selectedCard.classList.add('active');
+            if (selectedCard) {
+                selectedCard.classList.add('active');
+                selectedCard.style.borderColor = 'var(--accent)';
+                selectedCard.style.background = 'rgba(196, 36, 36, 0.05)';
+            }
+
+            // Sync radio inputs
+            const radioId = 'radio-' + method;
+            const selectedRadio = document.getElementById(radioId);
+            if (selectedRadio) {
+                selectedRadio.checked = true;
+            }
             
             // Immediately initiate payment redirection if explicitly clicked by user
             if (autoRedirect) {
