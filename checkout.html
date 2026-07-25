@@ -209,7 +209,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=23.0"></script>
+    <script src="app-core.js?v=24.0"></script>
     <script>
         let selectedPaymentMethod = 'paytm'; // 'paytm'
         let currentWizardStep = 1;
@@ -451,7 +451,7 @@
                 }
                 const settings = getSettings();
                 const upiId = settings.phonepeMerchantId || '1991083V5V@mairtel';
-                const payeeName = settings.phonepeClientId || 'Lucky Jat';
+                const payeeName = settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai';
 
                 const response = await fetch('/api/create-payment', {
                     method: 'POST',
@@ -484,8 +484,9 @@
                         
                         // Clean up name if it contains a client ID instead of a valid name
                         if (/^SU\d+/i.test(resolvedPayeeName) || resolvedPayeeName === 'SU2605131450590093051231') {
-                            resolvedPayeeName = 'Lucky Jat';
-                        }                        const isAndroid = /Android/i.test(navigator.userAgent);
+                            resolvedPayeeName = 'Bhalani Nandlal Madhavajibhai';
+                        }
+                        const isAndroid = /Android/i.test(navigator.userAgent);
                         const cleanAmount = total.toFixed(2);
                         const baseUpiUri = `upi://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                         
@@ -493,16 +494,16 @@
                         
                         if (selectedPaymentMethod === 'phonepe') {
                             appUri = isAndroid 
-                                ? `intent://pay?pa=${resolvedUpiId}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.phonepe.app;end`
-                                : `phonepe://pay?pa=${resolvedUpiId}&am=${cleanAmount}&cu=INR&mc=0000`;
+                                ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.phonepe.app;end`
+                                : `phonepe://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&mc=0000`;
                         } else if (selectedPaymentMethod === 'paytm') {
                             appUri = isAndroid 
                                 ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`
                                 : `paytmmp://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
                         } else if (selectedPaymentMethod === 'gpay') {
                             appUri = isAndroid 
-                                ? `intent://pay?pa=${resolvedUpiId}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                : `tez://upi/pay?pa=${resolvedUpiId}&am=${cleanAmount}&cu=INR&mc=0000`;
+                                ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                                : `tez://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&mc=0000`;
                         } else if (selectedPaymentMethod === 'bhim') {
                             appUri = isAndroid 
                                 ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=bhim;package=in.org.npci.upiapp;end`

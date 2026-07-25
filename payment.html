@@ -497,7 +497,7 @@
                 
                 <div class="order-meta-info">
                     <div>Order ID: <strong id="payment-order-id">IKKO-000000</strong></div>
-                    <div>Payee Name: <strong id="payment-payee">Lucky Jat</strong></div>
+                    <div>Payee Name: <strong id="payment-payee">Bhalani Nandlal Madhavajibhai</strong></div>
                 </div>
             </div>
 
@@ -520,7 +520,7 @@
                         </div>
                     </div>
                     
-                    <div class="phonepe-qr-payee-name" id="payment-qr-payee">Lucky Jat</div>
+                    <div class="phonepe-qr-payee-name" id="payment-qr-payee">Bhalani Nandlal Madhavajibhai</div>
                     
                     <div class="phonepe-qr-footer">
                         © 2026, All rights reserved, PhonePe Ltd (Formerly known as 'PhonePe Private Ltd')
@@ -635,12 +635,12 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=23.0"></script>
+    <script src="app-core.js?v=24.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
         let upiId = '1991083V5V@mairtel';
-        let payeeName = 'Lucky Jat';
+        let payeeName = 'Bhalani Nandlal Madhavajibhai';
         let selectedMethod = '';
 
         // Load Order Details
@@ -667,7 +667,7 @@
             
             // Clean up name if it contains a client ID instead of a valid name
             if (/^SU\d+/i.test(payeeName) || payeeName === 'SU2605131450590093051231') {
-                payeeName = 'Lucky Jat';
+                payeeName = 'Bhalani Nandlal Madhavajibhai';
             }
 
             if (!orderId) {
@@ -704,13 +704,13 @@
              const isAndroid = /Android/i.test(navigator.userAgent);
              
              if (isAndroid) {
-                 phonepeUri = `intent://pay?pa=${upiId}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.phonepe.app;end`;
+                 phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.phonepe.app;end`;
                  paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                 gpayUri = `intent://pay?pa=${upiId}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+                 gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
              } else {
-                 phonepeUri = `phonepe://pay?pa=${upiId}&am=${cleanAmount}&cu=INR&mc=0000`;
+                 phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000`;
                  paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
-                 gpayUri = `tez://upi/pay?pa=${upiId}&am=${cleanAmount}&cu=INR&mc=0000`;
+                 gpayUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&mc=0000`;
              }
             const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
 

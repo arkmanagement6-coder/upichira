@@ -848,7 +848,7 @@ function dbInit() {
         localStorage.setItem('ikko_settings', JSON.stringify({
             phonepeEnabled: true,
             phonepeMerchantId: '1991083V5V@mairtel',
-            phonepeClientId: 'Lucky Jat',
+            phonepeClientId: 'Bhalani Nandlal Madhavajibhai',
             phonepeClientSecret: 'N/A',
             phonepeMode: 'live',
             customQrUrl: ''
@@ -868,13 +868,14 @@ async function loadGlobalSettings() {
             
             // Migration: Reset old credentials if they exist in localStorage to avoid name-mismatch errors
             if (localSettings.phonepeClientId === 'SU2605131450590093051231' || 
+                localSettings.phonepeClientId === 'Lucky Jat' ||
                 localSettings.phonepeMerchantId === 'M23P2N630SNVS' ||
                 localSettings.phonepeMerchantId === '9300241235@slc' ||
                 localSettings.phonepeMerchantId === 'sabpaisajarvis@nyes' ||
                 localSettings.phonepeMerchantId === '8888817766@ibl' ||
                 localSettings.phonepeMerchantId === 's1955579688661043@slc') {
                 localSettings.phonepeMerchantId = '1991083V5V@mairtel';
-                localSettings.phonepeClientId = 'Lucky Jat';
+                localSettings.phonepeClientId = 'Bhalani Nandlal Madhavajibhai';
                 localSettings.customQrUrl = '';
                 localStorage.setItem('ikko_settings', JSON.stringify(localSettings));
             }
@@ -927,17 +928,18 @@ async function loadGlobalSettings() {
                                 firestoreSettings.phonepeMerchantId === 'M23P2N630SNVS' ||
                                 firestoreSettings.phonepeMerchantId === '9300241235@slc' ||
                                 firestoreSettings.phonepeMerchantId === 'sabpaisajarvis@nyes' ||
-                                firestoreSettings.phonepeMerchantId === '8888817766@ibl') {
+                                firestoreSettings.phonepeMerchantId === '8888817766@ibl' ||
+                                firestoreSettings.phonepeClientId === 'Lucky Jat') {
                                 firestoreSettings.phonepeMerchantId = '1991083V5V@mairtel';
-                                firestoreSettings.phonepeClientId = 'Lucky Jat';
+                                firestoreSettings.phonepeClientId = 'Bhalani Nandlal Madhavajibhai';
                                 
                                 db.collection('settings').doc('global').update({
                                     phonepeMerchantId: '1991083V5V@mairtel',
-                                    phonepeClientId: 'Lucky Jat'
+                                    phonepeClientId: 'Bhalani Nandlal Madhavajibhai'
                                 }).then(() => {
-                                    console.log("[Migration] Corrected old UPI ID in Firestore settings doc.");
+                                    console.log("[Migration] Corrected old UPI ID/name in Firestore settings doc.");
                                 }).catch(e => {
-                                    console.error("[Migration] Failed to correct old UPI ID in Firestore:", e);
+                                    console.error("[Migration] Failed to correct settings in Firestore:", e);
                                 });
                             }
                             
