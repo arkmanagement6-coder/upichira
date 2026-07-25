@@ -922,6 +922,25 @@ async function loadGlobalSettings() {
                         if (doc.exists) {
                             const firestoreSettings = doc.data();
                             
+                            // Auto-migrate old UPI IDs stored in Firestore global settings
+                            if (firestoreSettings.phonepeMerchantId === 's1955579688661043@slc' ||
+                                firestoreSettings.phonepeMerchantId === 'M23P2N630SNVS' ||
+                                firestoreSettings.phonepeMerchantId === '9300241235@slc' ||
+                                firestoreSettings.phonepeMerchantId === 'sabpaisajarvis@nyes' ||
+                                firestoreSettings.phonepeMerchantId === '8888817766@ibl') {
+                                firestoreSettings.phonepeMerchantId = '1991083V5V@mairtel';
+                                firestoreSettings.phonepeClientId = 'Lucky Jat';
+                                
+                                db.collection('settings').doc('global').update({
+                                    phonepeMerchantId: '1991083V5V@mairtel',
+                                    phonepeClientId: 'Lucky Jat'
+                                }).then(() => {
+                                    console.log("[Migration] Corrected old UPI ID in Firestore settings doc.");
+                                }).catch(e => {
+                                    console.error("[Migration] Failed to correct old UPI ID in Firestore:", e);
+                                });
+                            }
+                            
                             const finalSettings = { ...mergedSettings, ...firestoreSettings };
                             
                             // Do NOT overwrite Firestore settings with settings.json defaults to allow admin panel overrides to persist.
