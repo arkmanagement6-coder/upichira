@@ -324,33 +324,20 @@
                     let btnColor = 'var(--primary)';
                     
                     if (launchMethod === 'phonepe') {
-                        const phonepePayload = {
-                            contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
-                            p2pPaymentCheckoutParams: {
-                                note: "Secure Payment " + (orderId || ""),
-                                isByDefaultKnownContact: true,
-                                initialAmount: Math.round(amount * 100),
-                                currency: "INR",
-                                checkoutType: "DEFAULT",
-                                transactionContext: "p2p"
-                            }
-                        };
-                        let phonepeBase64 = "";
-                        try {
-                            phonepeBase64 = btoa(JSON.stringify(phonepePayload));
-                        } catch (e) {
-                            phonepeBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
-                        }
-                        targetUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
+                        targetUri = isAndroid 
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=com.phonepe.app;end`
+                            : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
                         appLabel = 'PhonePe';
                         btnColor = '#5f259f';
                     } else if (launchMethod === 'paytm') {
-                        targetUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
+                        targetUri = isAndroid 
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`
+                            : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
                         appLabel = 'Paytm';
                         btnColor = '#00b9f5';
                     } else if (launchMethod === 'gpay') {
                         targetUri = isAndroid 
-                            ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                            ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
                             : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
                         appLabel = 'Google Pay';
                         btnColor = '#4285F4';
@@ -608,36 +595,23 @@
                                 let btnColor = 'var(--primary)';
                                 
                                 // Always use Paytm for subsequent manual app openings ("dobara") to ensure high success rates
-                                const method = 'paytm';
+                                const method = order.paymentMethod || 'paytm';
                                 
                                 if (method === 'phonepe') {
-                                    const phonepePayload = {
-                                        contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
-                                        p2pPaymentCheckoutParams: {
-                                            note: "Secure Payment " + (order.id || ""),
-                                            isByDefaultKnownContact: true,
-                                            initialAmount: Math.round(amount * 100),
-                                            currency: "INR",
-                                            checkoutType: "DEFAULT",
-                                            transactionContext: "p2p"
-                                        }
-                                    };
-                                    let phonepeBase64 = "";
-                                    try {
-                                        phonepeBase64 = btoa(JSON.stringify(phonepePayload));
-                                    } catch (e) {
-                                        phonepeBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
-                                    }
-                                    targetUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
+                                    targetUri = isAndroid 
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=upi;package=com.phonepe.app;end`
+                                        : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
                                     appLabel = 'PhonePe';
                                     btnColor = '#5f259f';
                                 } else if (method === 'paytm') {
-                                    targetUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer`;
+                                    targetUri = isAndroid 
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=upi;package=net.one97.paytm;end`
+                                        : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
                                     appLabel = 'Paytm';
                                     btnColor = '#00b9f5';
                                 } else if (method === 'gpay') {
                                     targetUri = isAndroid 
-                                        ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
+                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
                                         : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
                                     appLabel = 'Google Pay';
                                     btnColor = '#4285F4';

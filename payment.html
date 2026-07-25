@@ -696,43 +696,23 @@
 
             // Generate UPI URIs
             const cleanAmount = amount.toFixed(2);
-            // standard UPI Link: upi://pay?pa=address&pn=name&am=amount&cu=INR (Removed &tn= to avoid security blocks on P2P VPAs)
-            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
-            
-            // Device and OS Detection
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            
-             // Build PhonePe native custom P2P deep link payload (bypasses browser intent security blocks)
-             const phonepePayload = {
-                 contact: {
-                     cbcName: "",
-                     nickName: "",
-                     vpa: upiId,
-                     type: "VPA"
-                 },
-                 p2pPaymentCheckoutParams: {
-                     note: "Secure Payment " + (orderId || ""),
-                     isByDefaultKnownContact: true,
-                     initialAmount: Math.round(amount * 100), // amount in paise
-                     currency: "INR",
-                     checkoutType: "DEFAULT",
-                     transactionContext: "p2p"
-                 }
-             };
+            // Setup app redirect URIs using native wallet deep links (official NPCI standard)
+             let phonepeUri = "";
+             let paytmUri = "";
+             let gpayUri = "";
              
-             let phonepeBase64 = "";
-             try {
-                 phonepeBase64 = btoa(JSON.stringify(phonepePayload));
-             } catch (e) {
-                 phonepeBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
+             const isAndroid = /Android/i.test(navigator.userAgent);
+             
+             if (isAndroid) {
+                 phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=com.phonepe.app;end`;
+                 paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`;
+                 gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+             } else {
+                 phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
+                 paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
+                 gpayUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
              }
- 
-             // Setup app redirect URIs using native wallet deep links (tested & verified working 100% on both Android and iOS)
-             const phonepeUri = "phonepe://native?data=" + encodeURIComponent(phonepeBase64) + "&id=p2ppayment";
-             const paytmUri = `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
-             const gpayUri = isAndroid 
-                  ? `intent://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`
-                  : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
+            const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
 
             // Helper to launch UPI app and trigger redirect to order confirmation page after 800ms
             function launchUpiAndRedirect(appUri) {
