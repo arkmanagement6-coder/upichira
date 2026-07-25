@@ -209,7 +209,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=27.0"></script>
+    <script src="app-core.js?v=28.0"></script>
     <script>
         let selectedPaymentMethod = 'paytm'; // 'paytm'
         let currentWizardStep = 1;
@@ -493,11 +493,19 @@
                         let appUri = baseUpiUri;
                         
                         if (selectedPaymentMethod === 'phonepe') {
-                            appUri = `phonepe://pay?pa=${resolvedUpiId}&pn=${resolvedPayeeName}&am=${cleanAmount}&cu=INR`;
+                                                    if (selectedPaymentMethod === 'phonepe') {
+                            appUri = isAndroid 
+                                ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015#Intent;scheme=upi;package=com.phonepe.app;end`
+                                : `phonepe://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015`;
                         } else if (selectedPaymentMethod === 'paytm') {
-                            appUri = `paytmmp://pay?pa=${resolvedUpiId}&pn=${resolvedPayeeName}&am=${cleanAmount}&cu=INR&tn=${orderId || ""}`;
+                            appUri = isAndroid 
+                                ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015#Intent;scheme=upi;package=net.one97.paytm;end`
+                                : `paytmmp://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015`;
                         } else if (selectedPaymentMethod === 'gpay') {
-                            appUri = `tez://upi/pay?pa=${resolvedUpiId}&pn=${resolvedPayeeName}&am=${cleanAmount}&cu=INR`;
+                            appUri = isAndroid 
+                                ? `intent://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                                : `tez://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tr=${orderId}&tn=${orderId}&mode=02&orgid=159015`;
+                        }
                         } else if (selectedPaymentMethod === 'bhim') {
                             appUri = isAndroid 
                                 ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=bhim;package=in.org.npci.upiapp;end`
