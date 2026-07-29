@@ -250,7 +250,6 @@
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         
-                        // Fill white background to prevent black conversion on transparent parts or drawing failures
                         ctx.fillStyle = '#FFFFFF';
                         ctx.fillRect(0, 0, width, height);
 
@@ -259,9 +258,9 @@
                         const dataUrl = canvas.toDataURL('image/jpeg', quality);
                         resolve(dataUrl);
                     };
-                    img.onerror = (err) => reject(new Error("Image load failed"));
+                    img.onerror = reject;
                 };
-                reader.onerror = (err) => reject(err);
+                reader.onerror = reject;
             });
         }
 
@@ -273,7 +272,6 @@
             let orderId = urlParams.get('orderId') || urlParams.get('client_txn_id') || urlParams.get('merchant_txn_id');
 
             if (!orderId) {
-                // Fallback to the latest order placed on this browser if no ID is passed in the URL redirect
                 const orders = getOrders();
                 if (orders.length > 0) {
                     orderId = orders[orders.length - 1].id;
@@ -307,81 +305,8 @@
 
             const order = orders[orderIndex];
 
-            // Check if we need to auto-launch the UPI app (from mobile checkout redirection)
-            const launchMethod = urlParams.get('launchMethod');
-            if (launchMethod) {
-                const upiId = urlParams.get('upi') || '1991083V5V@mairtel';
-                const payeeName = urlParams.get('name') || 'Bhalani Nandlal Madhavajibhai ';
-                const amount = parseFloat(order.total);
-                
-                if (!isNaN(amount) && amount > 0) {
-                    const cleanAmount = amount.toFixed(2);
-                    const isAndroid = /Android/i.test(navigator.userAgent);
-                    const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
-                    
-                    let targetUri = baseUpiUri;
-                    let appLabel = 'UPI App';
-                    let btnColor = 'var(--primary)';
-                    
-                    if (launchMethod === 'phonepe') {
-                        const phonepePayload = {
-                            contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
-                            p2pPaymentCheckoutParams: {
-                                note: "Pay For Store",
-                                isByDefaultKnownContact: true,
-                                initialAmount: Math.round(Number(cleanAmount) * 100),
-                                currency: "INR",
-                                checkoutType: "DEFAULT",
-                                transactionContext: "p2p"
-                            }
-                        };
-                        const base64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
-                        targetUri = `phonepe://native?data=${encodeURIComponent(base64)}&id=p2ppayment`;
-                        appLabel = 'PhonePe';
-                        btnColor = '#5f259f';
-                    } else if (launchMethod === 'paytm') {
-                        targetUri = isAndroid 
-                            ? `intent://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer#Intent;scheme=paytmmp;package=net.one97.paytm;end`
-                            : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
-                        appLabel = 'Paytm';
-                        btnColor = '#00b9f5';
-                    
-                    }
-                    // Show prompt and configure the action button
-                    setTimeout(() => {
-                        const promptEl = document.getElementById('confirmation-mobile-payment-prompt');
-                        const btnEl = document.getElementById('confirmation-pay-btn');
-                        const titleEl = document.getElementById('confirmation-pay-title');
-                        
-                        if (promptEl && btnEl && titleEl) {
-                            promptEl.style.display = 'block';
-                            btnEl.href = targetUri;
-                            btnEl.innerText = `Pay via ${appLabel} / ऐप खोलें`;
-                            btnEl.style.backgroundColor = btnColor;
-                            btnEl.style.borderColor = btnColor;
-                            titleEl.innerText = `Opening ${appLabel}...`;
-                        }
-                    }, 100);
-
-                    // Clean up URL parameters immediately so refreshes don't re-trigger launch
-                    try {
-                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?orderId=${encodeURIComponent(orderId)}`;
-                        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-                    } catch (e) {
-                        console.error("Failed to replace state:", e);
-                    }
-
-                    // Auto-launch the app after 1.5s delay (allows page resources and Pixel to load completely)
-                    setTimeout(() => {
-                        console.log(`[Auto-Launch] Attempting to open UPI app: ${targetUri}`);
-                        window.location.href = targetUri;
-                    }, 1500);
-                }
-            }
-
             // Render different layouts depending on verified status
             function renderSuccessUI(order) {
-
                 const itemsHtml = order.items.map(item => `
                     <div class="confirmation-item">
                         <img src="${item.image}" alt="${item.title}">
@@ -393,66 +318,44 @@
                     </div>
                 `).join('');
 
-                const formattedSubtotal = formatPrice(order.total);
-                const providerLabel = order.paymentMethod === 'phonepe' ? 'PhonePe App' : 
-                                      (order.paymentMethod === 'paytm' ? 'Paytm App' : 
-                                      (order.paymentMethod === 'gpay' ? 'Google Pay' : 
-                                      (order.paymentMethod === 'upi' ? 'UPI QR Code' : 'UPI')));
-                let paymentText = order.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : `Direct UPI (${providerLabel})`;
-                let statusText = order.paymentMethod === 'cod' ? 'Awaiting Delivery' : 'Paid & Confirmed';
-
                 card.innerHTML = `
-                    <div class="confirmation-success-header">
-                        <div class="success-icon-wrap">
-                            <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <div style="text-align: center; padding: 20px 0;">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #c6f6d5; color: #38a169; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         </div>
-                        <h1>Order Confirmed!</h1>
-                        <p>Thank you for shopping with us, <strong>${order.customer.name}</strong>! Your order is being processed.</p>
-                        <div class="order-badge-id">Order ID: ${order.id}</div>
-                    </div>
+                        <h1 style="color: #38a169; font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Order Confirmed!</h1>
+                        <p style="color: var(--text-dark); margin: 15px auto 25px auto; max-width: 480px; font-size: 1.05rem;">
+                            Thank you, <strong>${order.customer.name}</strong>! Your payment has been verified and your order is being processed.
+                        </p>
+                        
+                        <div class="order-badge-id" style="margin-bottom: 25px; background-color: #f7fafc; color: var(--text-dark); padding: 8px 16px; display: inline-block; border-radius: 20px; font-weight: bold; border: 1px solid #e2e8f0;">
+                            Order ID: ${order.id}
+                        </div>
 
-                    <div class="confirmation-details-grid">
-                        <div class="details-col">
-                            <h3>Shipping Address</h3>
-                            <p>
-                                <strong>${order.customer.name}</strong><br>
-                                ${order.customer.address}<br>
-                                ${order.customer.city}, ${order.customer.state} - ${order.customer.pin}<br>
-                                📞 Phone: ${order.customer.phone}
-                            </p>
+                        <div class="confirmation-summary-box" style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; text-align: left; max-width: 480px; margin: 0 auto 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <h3 style="margin-top: 0; margin-bottom: 20px; font-family: var(--font-heading); font-size: 1.15rem; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Order Receipt</h3>
+                            
+                            <div class="confirmation-items-list" style="margin-bottom: 20px;">
+                                ${itemsHtml}
+                            </div>
+                            
+                            <div class="confirmation-price-row" style="display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 10px; color: var(--text-muted);">
+                                <span>Subtotal</span>
+                                <span>${formatPrice(order.total)}</span>
+                            </div>
+                            <div class="confirmation-price-row" style="display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 15px; color: var(--text-muted);">
+                                <span>Shipping</span>
+                                <span style="color: #38a169; font-weight: 600;">FREE</span>
+                            </div>
+                            <div class="confirmation-price-row" style="display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 800; border-top: 1px solid var(--border-color); padding-top: 15px; color: var(--primary);">
+                                <span>Total Paid</span>
+                                <span>${formatPrice(order.total)}</span>
+                            </div>
                         </div>
-                        <div class="details-col">
-                            <h3>Billing & Payment</h3>
-                            <p>
-                                <strong>Method:</strong> ${paymentText}<br>
-                                <strong>Status:</strong> ${statusText}<br>
-                                <strong>Expected Delivery:</strong> Your order will be delivered next 7 days
-                            </p>
-                        </div>
-                    </div>
 
-                    <h2 class="confirmation-items-title">Ordered Items Summary</h2>
-                    <div class="confirmation-items-list">
-                        ${itemsHtml}
-                    </div>
-
-                    <div class="confirmation-totals">
-                        <div class="totals-row">
-                            <span>Subtotal</span>
-                            <span>${formattedSubtotal}</span>
+                        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                            <a href="index.html" class="confirm-home-btn" style="background-color: var(--accent); color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">Continue Shopping</a>
                         </div>
-                        <div class="totals-row">
-                            <span>Shipping</span>
-                            <span style="color: var(--accent-green); font-weight: bold;">FREE</span>
-                        </div>
-                        <div class="totals-row final">
-                            <span>Total Amount Paid</span>
-                            <span>${formattedSubtotal}</span>
-                        </div>
-                    </div>
-
-                    <div class="continue-btn-wrap">
-                        <a href="index.html" class="confirm-home-btn">Continue Shopping</a>
                     </div>
                 `;
             }
@@ -461,10 +364,10 @@
                 card.innerHTML = `
                     <div style="text-align: center; padding: 40px 0;">
                         <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #fed7d7; color: #e53e3e; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="3" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                         </div>
                         <h2 style="color: #e53e3e; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800;">Payment Failed!</h2>
-                        <p style="color: var(--text-muted); margin: 15px auto 25px auto; max-width: 380px;">Your transaction could not be authorized by PhonePe. Please try checkout again.</p>
+                        <p style="color: var(--text-muted); margin: 15px auto 25px auto; max-width: 380px;">Your transaction could not be authorized. Please try checkout again.</p>
                         <div class="order-badge-id" style="margin-bottom: 25px; background-color: #f7fafc; color: var(--text-dark);">Order ID: ${order.id}</div>
                         <a href="checkout.html" class="confirm-home-btn" style="background-color: var(--accent); color: white; border: none;">Retry Checkout & Payment</a>
                     </div>
@@ -481,7 +384,6 @@
                             </svg>
                         </div>
                         <h1 style="color: #dd6b20; font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Payment Awaiting Verification</h1>
-                        <h2 style="color: var(--text-muted); font-size: 1rem; font-weight: normal; margin-bottom: 25px;">पेमेंट सत्यापन लंबित है</h2>
                         
                         <p style="color: var(--text-dark); margin: 15px auto 10px auto; max-width: 480px; font-size: 1.05rem;">
                             Thank you, <strong>${order.customer.name}</strong>! Your order has been placed.
@@ -503,36 +405,83 @@
             }
 
             function renderUtrSubmissionUI(order) {
+                const settings = getSettings();
+                const upiId = settings.phonepeMerchantId || 'paytm.s36o36b@pty';
+                const payeeName = settings.phonepeClientId || 'Paytm';
+                const amount = parseFloat(order.total);
+                const cleanAmount = !isNaN(amount) ? amount.toFixed(2) : "0.00";
+                const isAndroid = /Android/i.test(navigator.userAgent);
+
+                // PhonePe payload link
+                const phonepePayload = {
+                    contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
+                    p2pPaymentCheckoutParams: {
+                        note: "Pay For Store",
+                        isByDefaultKnownContact: true,
+                        initialAmount: Math.round(Number(cleanAmount) * 100),
+                        currency: "INR",
+                        checkoutType: "DEFAULT",
+                        transactionContext: "p2p"
+                    }
+                };
+                const base64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
+                const phonepeUri = `phonepe://native?data=${encodeURIComponent(base64)}&id=p2ppayment`;
+
+                // Paytm cash wallet link
+                const paytmUri = isAndroid 
+                    ? `intent://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer#Intent;scheme=paytmmp;package=net.one97.paytm;end`
+                    : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer`;
+
+                const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const isSmallScreen = window.innerWidth <= 768;
+                const isMobileDevice = isMobileUA || isSmallScreen;
+
+                let mobilePromptHtml = "";
+                if (isMobileDevice) {
+                    mobilePromptHtml = `
+                        <div id="confirmation-mobile-payment-prompt" style="max-width: 420px; margin: 20px auto; background: #f7fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                            <h3 style="color: #2d3748; font-family: var(--font-heading); margin-bottom: 8px; font-size: 1.1rem; font-weight: 700;">Pay via Payment App</h3>
+                            <p style="font-size: 0.85rem; color: #4a5568; margin-bottom: 15px; line-height: 1.4;">
+                                If the payment app did not open automatically, tap a button below to open your preferred payment app:
+                            </p>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <a href="${phonepeUri}" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: block; border-radius: 8px; padding: 12px; color: white; text-decoration: none;">Pay via PhonePe</a>
+                                <a href="${paytmUri}" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #00b9f5; border-color: #00b9f5; display: block; border-radius: 8px; padding: 12px; color: white; text-decoration: none;">Pay via Paytm</a>
+                            </div>
+                        </div>
+                    `;
+
+                    // Auto-launch the app after 1.5s delay
+                    const launchMethod = order.paymentMethod || 'paytm';
+                    const autoLaunchUri = launchMethod === 'phonepe' ? phonepeUri : paytmUri;
+                    setTimeout(() => {
+                        console.log(`[Auto-Launch] Auto-launching UPI app: ${autoLaunchUri}`);
+                        window.location.href = autoLaunchUri;
+                    }, 1500);
+                }
+
                 card.innerHTML = `
                     <div style="text-align: center; padding: 30px 0;">
-                        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: rgba(229, 62, 62, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: rgba(66, 153, 225, 0.1); color: #3182ce; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
                             <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                         </div>
                         <h1 style="color: var(--primary); font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Submit UTR to Confirm Payment</h1>
-                        <h2 style="color: var(--text-muted); font-size: 1rem; font-weight: normal; margin-bottom: 25px;">ऑर्डर पूरा करने के लिए UTR नंबर डालें</h2>
                         
                         <p style="color: var(--text-dark); margin: 15px auto 10px auto; max-width: 480px; font-size: 1.05rem;">
                             Your order <strong>${order.id}</strong> of <strong>${formatPrice(order.total)}</strong> is currently pending payment confirmation.
                         </p>
-                        
-                        <!-- Mobile App Launch Button Box (Configured dynamically by JS) -->
-                        <div id="confirmation-mobile-payment-prompt" style="display: none; max-width: 420px; margin: 20px auto; background: #fffaf0; border: 1px solid #feebc8; padding: 20px; border-radius: 8px; text-align: center;">
-                            <h3 id="confirmation-pay-title" style="color: #dd6b20; font-family: var(--font-heading); margin-bottom: 8px; font-size: 1.05rem; font-weight: 700;">Opening Payment App...</h3>
-                            <p style="font-size: 0.85rem; color: #718096; margin-bottom: 15px; line-height: 1.4;">
-                                Please pay the amount in the payment app. If the app did not open automatically, tap the button below:
-                            </p>
-                            <a href="#" id="confirmation-pay-btn" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: inline-block;">Pay via App / ऐप खोलें</a>
-                        </div>
+
+                        ${mobilePromptHtml}
 
                         <div style="max-width: 420px; margin: 25px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: left;">
                             <form onsubmit="handleUtrSubmission(event, '${order.id}')">
-                                <label for="utr-input" style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 10px; font-size: 0.95rem;">Enter 12-Digit UTR / Ref No / यूटीआर नंबर दर्ज करें *</label>
+                                <label for="utr-input" style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 10px; font-size: 0.95rem;">Enter 12-Digit UTR / Ref No *</label>
                                 <input type="text" id="utr-input" placeholder="e.g. 231784436885" required 
                                        pattern="\\d{12}" maxLength="12" minLength="12"
                                        style="width: 100%; padding: 14px 15px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 1.1rem; font-family: monospace; letter-spacing: 2px; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
                                        title="Please enter your 12-digit numeric UPI reference/UTR number.">
                                 
-                                <button type="submit" class="confirm-home-btn" id="utr-submit-btn" style="width: 100%; border: none; cursor: pointer; padding: 14px; font-size: 1.1rem; font-weight: 700; border-radius: 8px; background: #00b9f5; color: white; transition: background 0.2s;">Submit UTR / यूटीआर सबमिट करें</button>
+                                <button type="submit" class="confirm-home-btn" id="utr-submit-btn" style="width: 100%; border: none; cursor: pointer; padding: 14px; font-size: 1.1rem; font-weight: 700; border-radius: 8px; background: #00b9f5; color: white; transition: background 0.2s;">Submit UTR</button>
                             </form>
                         </div>
 
@@ -546,609 +495,11 @@
                     </div>
                 `;
                 
-                // Add event listener to auto-format numeric entry
                 const utrInput = document.getElementById('utr-input');
                 if (utrInput) {
                     utrInput.addEventListener('input', function() {
                         this.value = this.value.replace(/[^\d]/g, '').slice(0, 12);
                     });
-                }
-
-                // Configure mobile payment buttons on the UTR page for mobile users
-                const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const isSmallScreen = window.innerWidth <= 768;
-                const isMobileDevice = isMobileUA || isSmallScreen;
-                
-                if (isMobileDevice) {
-                    setTimeout(() => {
-                        const promptEl = document.getElementById('confirmation-mobile-payment-prompt');
-                        const btnEl = document.getElementById('confirmation-pay-btn');
-                        const titleEl = document.getElementById('confirmation-pay-title');
-                        
-                        if (promptEl && btnEl && titleEl) {
-                            promptEl.style.display = 'block';
-                            titleEl.innerText = "Pay via App / ऐप से पेमेंट करें";
-                            btnEl.onclick = null;
-                            
-                            // Resolve merchant settings
-                            const settings = getSettings();
-                            const upiId = settings.phonepeMerchantId || '1991083V5V@mairtel';
-                            const payeeName = settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai ';
-                            const amount = parseFloat(order.total);
-                            
-                            if (!isNaN(amount) && amount > 0) {
-                                const cleanAmount = amount.toFixed(2);
-                                const isAndroid = /Android/i.test(navigator.userAgent);
-                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
-                                
-                                let targetUri = baseUpiUri;
-                                let appLabel = 'UPI App';
-                                let btnColor = 'var(--primary)';
-                                
-                                // Always use Paytm for subsequent manual app openings ("dobara") to ensure high success rates
-                                const method = order.paymentMethod || 'paytm';
-                                
-                                if (method === 'phonepe') {
-                                    const phonepePayload = {
-                                        contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
-                                        p2pPaymentCheckoutParams: {
-                                            note: "Pay For Store",
-                                            isByDefaultKnownContact: true,
-                                            initialAmount: Math.round(Number(cleanAmount) * 100),
-                                            currency: "INR",
-                                            checkoutType: "DEFAULT",
-                                            transactionContext: "p2p"
-                                        }
-                                    };
-                                    const base64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
-                                    targetUri = `phonepe://native?data=${encodeURIComponent(base64)}&id=p2ppayment`;
-                                    appLabel = 'PhonePe';
-                                    btnColor = '#5f259f';
-                                } else if (method === 'paytm') {
-                                    targetUri = isAndroid 
-                                        ? `intent://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer#Intent;scheme=paytmmp;package=net.one97.paytm;end`
-                                        : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer`;
-                                    appLabel = 'Paytm';
-                                    btnColor = '#00b9f5';
-                                
-                                }
-                                btnEl.href = targetUri;
-                            btnEl.innerText = `Pay via ${appLabel} / ऐप खोलें`;
-                            btnEl.style.backgroundColor = btnColor;
-                            btnEl.style.borderColor = btnColor;
-                            titleEl.innerText = `Opening ${appLabel}...`;
-                            }
-                        }
-                    }, 100);
-
-                    // Clean up URL parameters immediately so refreshes don't re-trigger launch
-                    try {
-                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?orderId=${encodeURIComponent(orderId)}`;
-                        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-                    } catch (e) {
-                        console.error("Failed to replace state:", e);
-                    }
-
-                    // Auto-launch the app after 1.5s delay (allows page resources and Pixel to load completely)
-                    setTimeout(() => {
-                        console.log(`[Auto-Launch] Attempting to open UPI app: ${targetUri}`);
-                        window.location.href = targetUri;
-                    }, 1500);
-                }
-            }
-
-            // Render different layouts depending on verified status
-            function renderSuccessUI(order) {
-
-                const itemsHtml = order.items.map(item => `
-                    <div class="confirmation-item">
-                        <img src="${item.image}" alt="${item.title}">
-                        <div class="confirmation-item-info">
-                            <span class="confirmation-item-title">${item.title}</span>
-                            <span class="confirmation-item-qty">Quantity: ${item.qty}</span>
-                        </div>
-                        <span class="confirmation-item-price">${item.price}</span>
-                    </div>
-                `).join('');
-
-                const formattedSubtotal = formatPrice(order.total);
-                const providerLabel = order.paymentMethod === 'phonepe' ? 'PhonePe App' : 
-                                      (order.paymentMethod === 'paytm' ? 'Paytm App' : 
-                                      (order.paymentMethod === 'gpay' ? 'Google Pay' : 
-                                      (order.paymentMethod === 'upi' ? 'UPI QR Code' : 'UPI')));
-                let paymentText = order.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : `Direct UPI (${providerLabel})`;
-                let statusText = order.paymentMethod === 'cod' ? 'Awaiting Delivery' : 'Paid & Confirmed';
-
-                card.innerHTML = `
-                    <div class="confirmation-success-header">
-                        <div class="success-icon-wrap">
-                            <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
-                        <h1>Order Confirmed!</h1>
-                        <p>Thank you for shopping with us, <strong>${order.customer.name}</strong>! Your order is being processed.</p>
-                        <div class="order-badge-id">Order ID: ${order.id}</div>
-                    </div>
-
-                    <div class="confirmation-details-grid">
-                        <div class="details-col">
-                            <h3>Shipping Address</h3>
-                            <p>
-                                <strong>${order.customer.name}</strong><br>
-                                ${order.customer.address}<br>
-                                ${order.customer.city}, ${order.customer.state} - ${order.customer.pin}<br>
-                                📞 Phone: ${order.customer.phone}
-                            </p>
-                        </div>
-                        <div class="details-col">
-                            <h3>Billing & Payment</h3>
-                            <p>
-                                <strong>Method:</strong> ${paymentText}<br>
-                                <strong>Status:</strong> ${statusText}<br>
-                                <strong>Expected Delivery:</strong> Your order will be delivered next 7 days
-                            </p>
-                        </div>
-                    </div>
-
-                    <h2 class="confirmation-items-title">Ordered Items Summary</h2>
-                    <div class="confirmation-items-list">
-                        ${itemsHtml}
-                    </div>
-
-                    <div class="confirmation-totals">
-                        <div class="totals-row">
-                            <span>Subtotal</span>
-                            <span>${formattedSubtotal}</span>
-                        </div>
-                        <div class="totals-row">
-                            <span>Shipping</span>
-                            <span style="color: var(--accent-green); font-weight: bold;">FREE</span>
-                        </div>
-                        <div class="totals-row final">
-                            <span>Total Amount Paid</span>
-                            <span>${formattedSubtotal}</span>
-                        </div>
-                    </div>
-
-                    <div class="continue-btn-wrap">
-                        <a href="index.html" class="confirm-home-btn">Continue Shopping</a>
-                    </div>
-                `;
-            }
-
-            function renderFailedUI(order) {
-                card.innerHTML = `
-                    <div style="text-align: center; padding: 40px 0;">
-                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #fed7d7; color: #e53e3e; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="3" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </div>
-                        <h2 style="color: #e53e3e; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800;">Payment Failed!</h2>
-                        <p style="color: var(--text-muted); margin: 15px auto 25px auto; max-width: 380px;">Your transaction could not be authorized by PhonePe. Please try checkout again.</p>
-                        <div class="order-badge-id" style="margin-bottom: 25px; background-color: #f7fafc; color: var(--text-dark);">Order ID: ${order.id}</div>
-                        <a href="checkout.html" class="confirm-home-btn" style="background-color: var(--accent); color: white; border: none;">Retry Checkout & Payment</a>
-                    </div>
-                `;
-            }
-
-            function renderPendingVerificationUI(order) {
-                card.innerHTML = `
-                    <div style="text-align: center; padding: 40px 0;">
-                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #feebc8; color: #dd6b20; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                        </div>
-                        <h1 style="color: #dd6b20; font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Payment Awaiting Verification</h1>
-                        <h2 style="color: var(--text-muted); font-size: 1rem; font-weight: normal; margin-bottom: 25px;">पेमेंट सत्यापन लंबित है</h2>
-                        
-                        <p style="color: var(--text-dark); margin: 15px auto 10px auto; max-width: 480px; font-size: 1.05rem;">
-                            Thank you, <strong>${order.customer.name}</strong>! Your order has been placed.
-                        </p>
-                        <p style="color: var(--text-muted); margin: 0 auto 25px auto; max-width: 480px; font-size: 0.95rem; line-height: 1.5;">
-                            We are verifying your payment UTR <strong>${order.utr}</strong> manually. Your order will be processed and shipped as soon as the payment is confirmed.
-                        </p>
-                        
-                        <div class="order-badge-id" style="margin-bottom: 25px; background-color: #f7fafc; color: var(--text-dark); padding: 8px 16px; display: inline-block; border-radius: 20px; font-weight: bold; border: 1px solid #e2e8f0;">
-                            Order ID: ${order.id}
-                        </div>
-                        
-                        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                            <button onclick="location.reload()" class="confirm-home-btn" style="background-color: var(--accent); color: white; border: none; cursor: pointer; padding: 10px 24px; border-radius: 6px; font-weight: 600;">Refresh Status</button>
-                            <a href="index.html" class="confirm-home-btn" style="background-color: #718096; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; text-decoration: none;">Return to Storefront</a>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function renderUtrSubmissionUI(order) {
-                card.innerHTML = `
-                    <div style="text-align: center; padding: 30px 0;">
-                        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: rgba(229, 62, 62, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                        </div>
-                        <h1 style="color: var(--primary); font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Submit UTR to Confirm Payment</h1>
-                        <h2 style="color: var(--text-muted); font-size: 1rem; font-weight: normal; margin-bottom: 25px;">ऑर्डर पूरा करने के लिए UTR नंबर डालें</h2>
-                        
-                        <p style="color: var(--text-dark); margin: 15px auto 10px auto; max-width: 480px; font-size: 1.05rem;">
-                            Your order <strong>${order.id}</strong> of <strong>${formatPrice(order.total)}</strong> is currently pending payment confirmation.
-                        </p>
-                        
-                        <!-- Mobile App Launch Button Box (Configured dynamically by JS) -->
-                        <div id="confirmation-mobile-payment-prompt" style="display: none; max-width: 420px; margin: 20px auto; background: #fffaf0; border: 1px solid #feebc8; padding: 20px; border-radius: 8px; text-align: center;">
-                            <h3 id="confirmation-pay-title" style="color: #dd6b20; font-family: var(--font-heading); margin-bottom: 8px; font-size: 1.05rem; font-weight: 700;">Opening Payment App...</h3>
-                            <p style="font-size: 0.85rem; color: #718096; margin-bottom: 15px; line-height: 1.4;">
-                                Please pay the amount in the payment app. If the app did not open automatically, tap the button below:
-                            </p>
-                            <a href="#" id="confirmation-pay-btn" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: inline-block;">Pay via App / ऐप खोलें</a>
-                        </div>
-
-                        <div style="max-width: 420px; margin: 30px auto; background: var(--bg-main); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
-                            <form onsubmit="handleUtrSubmission(event, '${order.id}')">
-                                <label for="utr-input" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">12-Digit UTR Number / UPI Ref No *</label>
-                                <input type="text" id="utr-input" placeholder="e.g. 231784436885" required 
-                                       pattern="\\d{12}" maxLength="12" minLength="12"
-                                       style="width: 100%; padding: 12px 15px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 1.05rem; font-family: monospace; letter-spacing: 1px; margin-bottom: 15px; box-sizing: border-box;"
-                                       title="Please enter a valid 12-digit numeric UPI reference number.">
-                                
-                                <div style="margin-top: 15px; padding: 12px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 6px; margin-bottom: 15px;">
-                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 0; line-height: 1.4;">
-                                        ⚠️ WARNING: Entering a fake UTR will result in automatic cancellation of your order and permanent IP block.
-                                    </p>
-                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 5px 0 0 0; line-height: 1.4;">
-                                        ⚠️ चेतावनी: फर्जी UTR डालने पर ऑर्डर रद्द कर दिया जाएगा और आपका IP/मोबाइल हमेशा के लिए ब्लॉक कर दिया जाएगा।
-                                    </p>
-                                </div>
-
-                                <label for="utr-screenshot" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">Upload Payment Screenshot / स्क्रीनशॉट अपलोड करें *</label>
-                                <input type="file" id="utr-screenshot" accept="image/*" required
-                                       style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.9rem; margin-bottom: 20px; box-sizing: border-box; background: white;">
-
-                                <button type="submit" class="confirm-home-btn" id="utr-submit-btn" style="width: 100%; border: none; cursor: pointer; padding: 12px; font-size: 1.05rem;">Submit UTR / यूटीआर सबमिट करें</button>
-                            </form>
-                        </div>
-
-                        <p style="color: var(--text-muted); font-size: 0.85rem; max-width: 480px; margin: 0 auto 20px auto;">
-                            Please enter the 12-digit UTR/Reference number from your UPI payment success screen to verify your order.
-                        </p>
-                        
-                        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                            <a href="index.html" class="confirm-home-btn" style="background-color: #718096; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; text-decoration: none;">Return to Storefront</a>
-                        </div>
-                    </div>
-                `;
-                
-                // Add event listener to auto-format numeric entry
-                const utrInput = document.getElementById('utr-input');
-                if (utrInput) {
-                    utrInput.addEventListener('input', function() {
-                        this.value = this.value.replace(/[^\d]/g, '').slice(0, 12);
-                    });
-                }
-
-                // Configure mobile payment buttons on the UTR page for mobile users
-                const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const isSmallScreen = window.innerWidth <= 768;
-                const isMobileDevice = isMobileUA || isSmallScreen;
-                
-                if (isMobileDevice) {
-                    setTimeout(() => {
-                        const promptEl = document.getElementById('confirmation-mobile-payment-prompt');
-                        const btnEl = document.getElementById('confirmation-pay-btn');
-                        const titleEl = document.getElementById('confirmation-pay-title');
-                        
-                        if (promptEl && btnEl && titleEl) {
-                            promptEl.style.display = 'block';
-                            titleEl.innerText = "Pay via App / ऐप से पेमेंट करें";
-                            btnEl.onclick = null;
-                            
-                            // Resolve merchant settings
-                            const settings = getSettings();
-                            const upiId = settings.phonepeMerchantId || '1991083V5V@mairtel';
-                            const payeeName = settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai ';
-                            const amount = parseFloat(order.total);
-                            
-                            if (!isNaN(amount) && amount > 0) {
-                                const cleanAmount = amount.toFixed(2);
-                                const isAndroid = /Android/i.test(navigator.userAgent);
-                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
-                                
-                                let targetUri = baseUpiUri;
-                                let appLabel = 'UPI App';
-                                let btnColor = 'var(--primary)';
-                                
-                                // Always use Paytm for subsequent manual app openings ("dobara") to ensure high success rates
-                                const method = order.paymentMethod || 'paytm';
-                                
-                                if (method === 'phonepe') {
-                                    targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`
-                                        : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
-                                    appLabel = 'PhonePe';
-                                    btnColor = '#5f259f';
-                                } else if (method === 'paytm') {
-                                    targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=upi;package=net.one97.paytm;end`
-                                        : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
-                                    appLabel = 'Paytm';
-                                    btnColor = '#00b9f5';
-                                
-                                }
-                                
-                                btnEl.href = targetUri;
-                            btnEl.innerText = `Pay via ${appLabel} / ऐप खोलें`;
-                            btnEl.style.backgroundColor = btnColor;
-                            btnEl.style.borderColor = btnColor;
-                            titleEl.innerText = `Opening ${appLabel}...`;
-                            }
-                        }
-                    }, 100);
-
-                    // Clean up URL parameters immediately so refreshes don't re-trigger launch
-                    try {
-                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?orderId=${encodeURIComponent(orderId)}`;
-                        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-                    } catch (e) {
-                        console.error("Failed to replace state:", e);
-                    }
-
-                    // Auto-launch the app after 1.5s delay (allows page resources and Pixel to load completely)
-                    setTimeout(() => {
-                        console.log(`[Auto-Launch] Attempting to open UPI app: ${targetUri}`);
-                        window.location.href = targetUri;
-                    }, 1500);
-                }
-            }
-
-            // Render different layouts depending on verified status
-            function renderSuccessUI(order) {
-
-                const itemsHtml = order.items.map(item => `
-                    <div class="confirmation-item">
-                        <img src="${item.image}" alt="${item.title}">
-                        <div class="confirmation-item-info">
-                            <span class="confirmation-item-title">${item.title}</span>
-                            <span class="confirmation-item-qty">Quantity: ${item.qty}</span>
-                        </div>
-                        <span class="confirmation-item-price">${item.price}</span>
-                    </div>
-                `).join('');
-
-                const formattedSubtotal = formatPrice(order.total);
-                const providerLabel = order.paymentMethod === 'phonepe' ? 'PhonePe App' : 
-                                      (order.paymentMethod === 'paytm' ? 'Paytm App' : 
-                                      (order.paymentMethod === 'gpay' ? 'Google Pay' : 
-                                      (order.paymentMethod === 'upi' ? 'UPI QR Code' : 'UPI')));
-                let paymentText = order.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : `Direct UPI (${providerLabel})`;
-                let statusText = order.paymentMethod === 'cod' ? 'Awaiting Delivery' : 'Paid & Confirmed';
-
-                card.innerHTML = `
-                    <div class="confirmation-success-header">
-                        <div class="success-icon-wrap">
-                            <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="3.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
-                        <h1>Order Confirmed!</h1>
-                        <p>Thank you for shopping with us, <strong>${order.customer.name}</strong>! Your order is being processed.</p>
-                        <div class="order-badge-id">Order ID: ${order.id}</div>
-                    </div>
-
-                    <div class="confirmation-details-grid">
-                        <div class="details-col">
-                            <h3>Shipping Address</h3>
-                            <p>
-                                <strong>${order.customer.name}</strong><br>
-                                ${order.customer.address}<br>
-                                ${order.customer.city}, ${order.customer.state} - ${order.customer.pin}<br>
-                                📞 Phone: ${order.customer.phone}
-                            </p>
-                        </div>
-                        <div class="details-col">
-                            <h3>Billing & Payment</h3>
-                            <p>
-                                <strong>Method:</strong> ${paymentText}<br>
-                                <strong>Status:</strong> ${statusText}<br>
-                                <strong>Expected Delivery:</strong> Your order will be delivered next 7 days
-                            </p>
-                        </div>
-                    </div>
-
-                    <h2 class="confirmation-items-title">Ordered Items Summary</h2>
-                    <div class="confirmation-items-list">
-                        ${itemsHtml}
-                    </div>
-
-                    <div class="confirmation-totals">
-                        <div class="totals-row">
-                            <span>Subtotal</span>
-                            <span>${formattedSubtotal}</span>
-                        </div>
-                        <div class="totals-row">
-                            <span>Shipping</span>
-                            <span style="color: var(--accent-green); font-weight: bold;">FREE</span>
-                        </div>
-                        <div class="totals-row final">
-                            <span>Total Amount Paid</span>
-                            <span>${formattedSubtotal}</span>
-                        </div>
-                    </div>
-
-                    <div class="continue-btn-wrap">
-                        <a href="index.html" class="confirm-home-btn">Continue Shopping</a>
-                    </div>
-                `;
-            }
-
-            function renderFailedUI(order) {
-                card.innerHTML = `
-                    <div style="text-align: center; padding: 40px 0;">
-                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #fed7d7; color: #e53e3e; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="3" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </div>
-                        <h2 style="color: #e53e3e; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800;">Payment Failed!</h2>
-                        <p style="color: var(--text-muted); margin: 15px auto 25px auto; max-width: 380px;">Your transaction could not be authorized by PhonePe. Please try checkout again.</p>
-                        <div class="order-badge-id" style="margin-bottom: 25px; background-color: #f7fafc; color: var(--text-dark);">Order ID: ${order.id}</div>
-                        <a href="checkout.html" class="confirm-home-btn" style="background-color: var(--accent); color: white; border: none;">Retry Checkout & Payment</a>
-                    </div>
-                `;
-            }
-
-            function renderPendingVerificationUI(order) {
-                card.innerHTML = `
-                    <div style="text-align: center; padding: 40px 0;">
-                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #feebc8; color: #dd6b20; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                        </div>
-                        <h1 style="color: #dd6b20; font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Payment Awaiting Verification</h1>
-                        <h2 style="color: var(--text-muted); font-size: 1rem; font-weight: normal; margin-bottom: 25px;">पेमेंट सत्यापन लंबित है</h2>
-                        
-                        <p style="color: var(--text-dark); margin: 15px auto 10px auto; max-width: 480px; font-size: 1.05rem;">
-                            Thank you, <strong>${order.customer.name}</strong>! Your order has been placed.
-                        </p>
-                        <p style="color: var(--text-muted); margin: 0 auto 25px auto; max-width: 480px; font-size: 0.95rem; line-height: 1.5;">
-                            We are verifying your payment UTR <strong>${order.utr}</strong> manually. Your order will be processed and shipped as soon as the payment is confirmed.
-                        </p>
-                        
-                        <div class="order-badge-id" style="margin-bottom: 25px; background-color: #f7fafc; color: var(--text-dark); padding: 8px 16px; display: inline-block; border-radius: 20px; font-weight: bold; border: 1px solid #e2e8f0;">
-                            Order ID: ${order.id}
-                        </div>
-                        
-                        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                            <button onclick="location.reload()" class="confirm-home-btn" style="background-color: var(--accent); color: white; border: none; cursor: pointer; padding: 10px 24px; border-radius: 6px; font-weight: 600;">Refresh Status</button>
-                            <a href="index.html" class="confirm-home-btn" style="background-color: #718096; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; text-decoration: none;">Return to Storefront</a>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function renderUtrSubmissionUI(order) {
-                card.innerHTML = `
-                    <div style="text-align: center; padding: 30px 0;">
-                        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: rgba(229, 62, 62, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                        </div>
-                        <h1 style="color: var(--primary); font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 5px;">Submit UTR to Confirm Payment</h1>
-                        <h2 style="color: var(--text-muted); font-size: 1rem; font-weight: normal; margin-bottom: 25px;">ऑर्डर पूरा करने के लिए UTR नंबर डालें</h2>
-                        
-                        <p style="color: var(--text-dark); margin: 15px auto 10px auto; max-width: 480px; font-size: 1.05rem;">
-                            Your order <strong>${order.id}</strong> of <strong>${formatPrice(order.total)}</strong> is currently pending payment confirmation.
-                        </p>
-                        
-                        <!-- Mobile App Launch Button Box (Configured dynamically by JS) -->
-                        <div id="confirmation-mobile-payment-prompt" style="display: none; max-width: 420px; margin: 20px auto; background: #fffaf0; border: 1px solid #feebc8; padding: 20px; border-radius: 8px; text-align: center;">
-                            <h3 id="confirmation-pay-title" style="color: #dd6b20; font-family: var(--font-heading); margin-bottom: 8px; font-size: 1.05rem; font-weight: 700;">Opening Payment App...</h3>
-                            <p style="font-size: 0.85rem; color: #718096; margin-bottom: 15px; line-height: 1.4;">
-                                Please pay the amount in the payment app. If the app did not open automatically, tap the button below:
-                            </p>
-                            <a href="#" id="confirmation-pay-btn" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: inline-block;">Pay via App / ऐप खोलें</a>
-                        </div>
-
-                        <div style="max-width: 420px; margin: 30px auto; background: var(--bg-main); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
-                            <form onsubmit="handleUtrSubmission(event, '${order.id}')">
-                                <label for="utr-input" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">12-Digit UTR Number / UPI Ref No *</label>
-                                <input type="text" id="utr-input" placeholder="e.g. 231784436885" required 
-                                       pattern="\\d{12}" maxLength="12" minLength="12"
-                                       style="width: 100%; padding: 12px 15px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 1.05rem; font-family: monospace; letter-spacing: 1px; margin-bottom: 15px; box-sizing: border-box;"
-                                       title="Please enter a valid 12-digit numeric UPI reference number.">
-                                
-                                <div style="margin-top: 15px; padding: 12px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 6px; margin-bottom: 15px;">
-                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 0; line-height: 1.4;">
-                                        ⚠️ WARNING: Entering a fake UTR will result in automatic cancellation of your order and permanent IP block.
-                                    </p>
-                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 5px 0 0 0; line-height: 1.4;">
-                                        ⚠️ चेतावनी: फर्जी UTR डालने पर ऑर्डर रद्द कर दिया जाएगा और आपका IP/मोबाइल हमेशा के लिए ब्लॉक कर दिया जाएगा।
-                                    </p>
-                                </div>
-
-                                <label for="utr-screenshot" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">Upload Payment Screenshot / स्क्रीनशॉट अपलोड करें *</label>
-                                <input type="file" id="utr-screenshot" accept="image/*" required
-                                       style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.9rem; margin-bottom: 20px; box-sizing: border-box; background: white;">
-
-                                <button type="submit" class="confirm-home-btn" id="utr-submit-btn" style="width: 100%; border: none; cursor: pointer; padding: 12px; font-size: 1.05rem;">Submit UTR / यूटीआर सबमिट करें</button>
-                            </form>
-                        </div>
-
-                        <p style="color: var(--text-muted); font-size: 0.85rem; max-width: 480px; margin: 0 auto 20px auto;">
-                            Please enter the 12-digit UTR/Reference number from your UPI payment success screen to verify your order.
-                        </p>
-                        
-                        <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                            <a href="index.html" class="confirm-home-btn" style="background-color: #718096; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; text-decoration: none;">Return to Storefront</a>
-                        </div>
-                    </div>
-                `;
-                
-                // Add event listener to auto-format numeric entry
-                const utrInput = document.getElementById('utr-input');
-                if (utrInput) {
-                    utrInput.addEventListener('input', function() {
-                        this.value = this.value.replace(/[^\d]/g, '').slice(0, 12);
-                    });
-                }
-
-                // Configure mobile payment buttons on the UTR page for mobile users
-                const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const isSmallScreen = window.innerWidth <= 768;
-                const isMobileDevice = isMobileUA || isSmallScreen;
-                
-                if (isMobileDevice) {
-                    setTimeout(() => {
-                        const promptEl = document.getElementById('confirmation-mobile-payment-prompt');
-                        const btnEl = document.getElementById('confirmation-pay-btn');
-                        const titleEl = document.getElementById('confirmation-pay-title');
-                        
-                        if (promptEl && btnEl && titleEl) {
-                            promptEl.style.display = 'block';
-                            titleEl.innerText = "Pay via App / ऐप से पेमेंट करें";
-                            btnEl.onclick = null;
-                            
-                            // Resolve merchant settings
-                            const settings = getSettings();
-                            const upiId = settings.phonepeMerchantId || '1991083V5V@mairtel';
-                            const payeeName = settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai ';
-                            const amount = parseFloat(order.total);
-                            
-                            if (!isNaN(amount) && amount > 0) {
-                                const cleanAmount = amount.toFixed(2);
-                                const isAndroid = /Android/i.test(navigator.userAgent);
-                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
-                                
-                                let targetUri = baseUpiUri;
-                                let appLabel = 'UPI App';
-                                let btnColor = 'var(--primary)';
-                                
-                                // Always use Paytm for subsequent manual app openings ("dobara") to ensure high success rates
-                                const method = order.paymentMethod || 'paytm';
-                                
-                                if (method === 'phonepe') {
-                                    targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`
-                                        : `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
-                                    appLabel = 'PhonePe';
-                                    btnColor = '#5f259f';
-                                } else if (method === 'paytm') {
-                                    targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}#Intent;scheme=upi;package=net.one97.paytm;end`
-                                        : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
-                                    appLabel = 'Paytm';
-                                    btnColor = '#00b9f5';
-                                } else if (method === 'gpay') {
-                                    targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                        : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
-                                    appLabel = 'Google Pay';
-                                    btnColor = '#4285F4';
-                                    btnEl.onclick = null;
-                                }
-                                
-                                btnEl.href = targetUri;
-                                btnEl.innerText = `Open ${appLabel} / दोबारा ऐप खोलें`;
-                                btnEl.style.backgroundColor = btnColor;
-                                btnEl.style.borderColor = btnColor;
-                            }
-                        }
-                    }, 50);
                 }
             }
 
@@ -1163,7 +514,7 @@
                 const submitBtn = document.getElementById('utr-submit-btn');
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.innerText = "Processing & Syncing... / प्रोसेसिंग हो रही है...";
+                    submitBtn.innerText = "Processing & Syncing...";
                     submitBtn.style.opacity = "0.7";
                 }
 
@@ -1171,10 +522,10 @@
                 const orders = getOrders();
                 const isLocalDuplicate = orders.some(o => o.id !== orderId && o.utr === utr);
                 if (isLocalDuplicate) {
-                    alert("This UTR has already been submitted for another order. Please enter the correct UTR / यह UTR पहले ही उपयोग किया जा चुका है।");
+                    alert("This UTR has already been submitted for another order. Please enter the correct UTR.");
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        submitBtn.innerText = "Submit UTR / यूटीआर सबमिट करें";
+                        submitBtn.innerText = "Submit UTR";
                         submitBtn.style.opacity = "1";
                     }
                     return;
@@ -1204,16 +555,15 @@
                 }
 
                 if (isDbDuplicate) {
-                    alert("This UTR has already been submitted for another order. Please enter the correct UTR / यह UTR पहले ही उपयोग किया जा चुका है।");
+                    alert("This UTR has already been submitted for another order. Please enter the correct UTR.");
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        submitBtn.innerText = "Submit UTR / यूटीआर सबमिट करें";
+                        submitBtn.innerText = "Submit UTR";
                         submitBtn.style.opacity = "1";
                     }
                     return;
                 }
 
-                // No screenshot needed
                 let screenshotBase64 = '';
 
                 // Update in local storage
@@ -1235,9 +585,9 @@
                                 utr: utr,
                                 screenshot: screenshotBase64
                             }, { merge: true });
-                            console.log("[Confirmation] Order UTR and Screenshot synced to Firestore successfully.");
+                            console.log("[Confirmation] Order UTR synced to Firestore successfully.");
                         } catch (e) {
-                            console.error("[Confirmation] Failed to sync UTR/Screenshot to Firestore:", e);
+                            console.error("[Confirmation] Failed to sync UTR to Firestore:", e);
                         }
                     }
                 }
@@ -1251,85 +601,77 @@
 
                 // Reload page to reflect updated state and start listener
                 location.reload();
-            }
+            };
 
             let orderListenerUnsubscribe = null;
  
-             async function initOrderRealTimeListener(orderId) {
-                 if (window.settingsLoadingPromise) {
-                     await window.settingsLoadingPromise;
-                 }
-                 const settings = getSettings();
-                 if (settings.firebaseEnabled) {
-                     const db = await initFirebase();
-                     if (db) {
-                         console.log(`[Real-time] Subscribing to order ${orderId} status changes...`);
-                         orderListenerUnsubscribe = db.collection('orders').doc(orderId).onSnapshot((doc) => {
-                             if (doc.exists) {
-                                 const updatedOrder = doc.data();
-                                 console.log("[Real-time] Order updated from Firestore:", updatedOrder);
-                                 
-                                 // Update in local storage
-                                 const orders = getOrders();
-                                 const idx = orders.findIndex(o => o.id === orderId);
-                                 let mergedOrder;
-                                 if (idx !== -1) {
-                                     // Preserve local-only properties like pixelFired
-                                     mergedOrder = { ...orders[idx], ...updatedOrder };
-                                     orders[idx] = mergedOrder;
-                                 } else {
-                                     mergedOrder = updatedOrder;
-                                     orders.push(mergedOrder);
-                                 }
-                                 localStorage.setItem('ikko_orders', JSON.stringify(orders));
-                                 
-                                 // Re-render confirmation screen dynamically
-                                 renderConfirmationScreen(mergedOrder);
-                             }
-                         }, (err) => {
-                             console.error("[Real-time] Order subscription error:", err);
-                         });
-                     }
-                 }
-             }
- 
-              function renderConfirmationScreen(order) {
-                  // Fire Meta Pixel purchase tracking ONLY when UTR has been entered (pending_verification) or order is success/completed
-                  const hasUtr = order.utr && order.utr.trim() !== '' && !order.utr.toLowerCase().includes('pending') && order.utr !== 'Payment Failed';
-                  const isApproved = ['pending', 'success', 'delivered', 'completed'].includes(order.status);
-                  if (order.status !== 'cancelled' && (hasUtr || isApproved)) {
-                      if (typeof window.trackPurchaseEvent === 'function') {
-                          window.trackPurchaseEvent(order);
-                      }
-                  }
+            async function initOrderRealTimeListener(orderId) {
+                if (window.settingsLoadingPromise) {
+                    await window.settingsLoadingPromise;
+                }
+                const settings = getSettings();
+                if (settings.firebaseEnabled) {
+                    const db = await initFirebase();
+                    if (db) {
+                        console.log(`[Real-time] Subscribing to order ${orderId} status changes...`);
+                        orderListenerUnsubscribe = db.collection('orders').doc(orderId).onSnapshot((doc) => {
+                            if (doc.exists) {
+                                const updatedOrder = doc.data();
+                                const orders = getOrders();
+                                const idx = orders.findIndex(o => o.id === orderId);
+                                let mergedOrder = null;
+                                
+                                if (idx !== -1) {
+                                    orders[idx] = { ...orders[idx], ...updatedOrder };
+                                    mergedOrder = orders[idx];
+                                } else {
+                                    mergedOrder = updatedOrder;
+                                    orders.push(mergedOrder);
+                                }
+                                localStorage.setItem('ikko_orders', JSON.stringify(orders));
+                                
+                                renderConfirmationScreen(mergedOrder);
+                            }
+                        }, (err) => {
+                            console.error("[Real-time] Order subscription error:", err);
+                        });
+                    }
+                }
+            }
 
-                 if (order.status === 'pending') {
-                     renderSuccessUI(order);
-                 } else if (order.status === 'pending_verification') {
-                     if (order.utr.toLowerCase().includes('pending') || !order.utr.trim()) {
-                         renderUtrSubmissionUI(order);
-                     } else {
-                         renderPendingVerificationUI(order);
-                     }
-                 } else if (order.status === 'pending_payment') {
-                     renderUtrSubmissionUI(order);
-                 } else if (order.status === 'cancelled' || order.utr === 'Payment Failed') {
-                     renderFailedUI(order);
-                 } else {
-                     renderSuccessUI(order);
-                 }
-             }
- 
-             // Start real-time listener to get the latest status from Firestore
-             initOrderRealTimeListener(orderId);
+            function renderConfirmationScreen(order) {
+                const hasUtr = order.utr && order.utr.trim() !== '' && !order.utr.toLowerCase().includes('pending') && order.utr !== 'Payment Failed';
+                const isApproved = ['pending', 'success', 'delivered', 'completed'].includes(order.status);
+                if (order.status !== 'cancelled' && (hasUtr || isApproved)) {
+                    if (typeof window.trackPurchaseEvent === 'function') {
+                        window.trackPurchaseEvent(order);
+                    }
+                }
 
-             // Decide what to render immediately based on current localStorage state
-             renderConfirmationScreen(order);
+                if (order.status === 'pending') {
+                    renderSuccessUI(order);
+                } else if (order.status === 'pending_verification') {
+                    if (order.utr.toLowerCase().includes('pending') || !order.utr.trim()) {
+                        renderUtrSubmissionUI(order);
+                    } else {
+                        renderPendingVerificationUI(order);
+                    }
+                } else if (order.status === 'pending_payment') {
+                    renderUtrSubmissionUI(order);
+                } else if (order.status === 'cancelled' || order.utr === 'Payment Failed') {
+                    renderFailedUI(order);
+                } else {
+                    renderSuccessUI(order);
+                }
+            }
+
+            initOrderRealTimeListener(orderId);
+            renderConfirmationScreen(order);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             renderConfirmation();
         });
-    </script>
+        </script>
 </body>
 </html>
