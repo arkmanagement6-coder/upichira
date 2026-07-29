@@ -186,11 +186,11 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '947390424330740');
+    fbq('init', '1039324625032380');
     fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=947390424330740&ev=PageView&noscript=1"
+    src="https://www.facebook.com/tr?id=1039324625032380&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
 </head>
@@ -524,28 +524,15 @@
                             <a href="#" id="confirmation-pay-btn" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: inline-block;">Pay via App / ऐप खोलें</a>
                         </div>
 
-                        <div style="max-width: 420px; margin: 30px auto; background: var(--bg-main); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
+                        <div style="max-width: 420px; margin: 25px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-align: left;">
                             <form onsubmit="handleUtrSubmission(event, '${order.id}')">
-                                <label for="utr-input" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">12-Digit UTR Number / UPI Ref No *</label>
+                                <label for="utr-input" style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 10px; font-size: 0.95rem;">Enter 12-Digit UTR / Ref No / यूटीआर नंबर दर्ज करें *</label>
                                 <input type="text" id="utr-input" placeholder="e.g. 231784436885" required 
                                        pattern="\\d{12}" maxLength="12" minLength="12"
-                                       style="width: 100%; padding: 12px 15px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 1.05rem; font-family: monospace; letter-spacing: 1px; margin-bottom: 15px; box-sizing: border-box;"
-                                       title="Please enter a valid 12-digit numeric UPI reference number.">
+                                       style="width: 100%; padding: 14px 15px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 1.1rem; font-family: monospace; letter-spacing: 2px; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
+                                       title="Please enter your 12-digit numeric UPI reference/UTR number.">
                                 
-                                <div style="margin-top: 15px; padding: 12px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 6px; margin-bottom: 15px;">
-                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 0; line-height: 1.4;">
-                                        ⚠️ WARNING: Entering a fake UTR will result in automatic cancellation of your order and permanent IP block.
-                                    </p>
-                                    <p style="color: #c53030; font-size: 0.8rem; font-weight: 700; margin: 5px 0 0 0; line-height: 1.4;">
-                                        ⚠️ चेतावनी: फर्जी UTR डालने पर ऑर्डर रद्द कर दिया जाएगा और आपका IP/मोबाइल हमेशा के लिए ब्लॉक कर दिया जाएगा।
-                                    </p>
-                                </div>
-
-                                <label for="utr-screenshot" style="display: block; font-weight: 700; color: var(--primary); margin-bottom: 8px; font-size: 0.95rem;">Upload Payment Screenshot / स्क्रीनशॉट अपलोड करें *</label>
-                                <input type="file" id="utr-screenshot" accept="image/*" required
-                                       style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.9rem; margin-bottom: 20px; box-sizing: border-box; background: white;">
-
-                                <button type="submit" class="confirm-home-btn" id="utr-submit-btn" style="width: 100%; border: none; cursor: pointer; padding: 12px; font-size: 1.05rem;">Submit UTR / यूटीआर सबमिट करें</button>
+                                <button type="submit" class="confirm-home-btn" id="utr-submit-btn" style="width: 100%; border: none; cursor: pointer; padding: 14px; font-size: 1.1rem; font-weight: 700; border-radius: 8px; background: #00b9f5; color: white; transition: background 0.2s;">Submit UTR / यूटीआर सबमिट करें</button>
                             </form>
                         </div>
 
@@ -630,6 +617,7 @@
                             btnEl.style.backgroundColor = btnColor;
                             btnEl.style.borderColor = btnColor;
                             titleEl.innerText = `Opening ${appLabel}...`;
+                            }
                         }
                     }, 100);
 
@@ -891,6 +879,7 @@
                             btnEl.style.backgroundColor = btnColor;
                             btnEl.style.borderColor = btnColor;
                             titleEl.innerText = `Opening ${appLabel}...`;
+                            }
                         }
                     }, 100);
 
@@ -1171,12 +1160,6 @@
                     return;
                 }
 
-                const fileInput = document.getElementById('utr-screenshot');
-                if (!fileInput || fileInput.files.length === 0) {
-                    alert("Please upload a payment screenshot / स्क्रीनशॉट अपलोड करें।");
-                    return;
-                }
-
                 const submitBtn = document.getElementById('utr-submit-btn');
                 if (submitBtn) {
                     submitBtn.disabled = true;
@@ -1230,20 +1213,8 @@
                     return;
                 }
 
-                // Compress image to Base64
+                // No screenshot needed
                 let screenshotBase64 = '';
-                try {
-                    screenshotBase64 = await compressImage(fileInput.files[0], 500, 650, 0.4);
-                } catch (e) {
-                    console.error("[Confirmation] Image compression error:", e);
-                    alert("Failed to process the screenshot. Please try uploading another image / स्क्रीनशॉट लोड करने में विफलता।");
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Submit UTR / यूटीआर सबमिट करें";
-                        submitBtn.style.opacity = "1";
-                    }
-                    return;
-                }
 
                 // Update in local storage
                 const idx = orders.findIndex(o => o.id === orderId);
@@ -1269,6 +1240,13 @@
                             console.error("[Confirmation] Failed to sync UTR/Screenshot to Firestore:", e);
                         }
                     }
+                }
+
+                // Fire purchase event immediately before reload
+                const currentOrder = orders.find(o => o.id === orderId);
+                if (currentOrder && typeof window.trackPurchaseEvent === 'function') {
+                    console.log("[Pixel] Firing purchase pixel immediately on UTR submission...");
+                    window.trackPurchaseEvent(currentOrder);
                 }
 
                 // Reload page to reflect updated state and start listener
