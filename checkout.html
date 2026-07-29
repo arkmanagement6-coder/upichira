@@ -136,16 +136,7 @@
                             </div>
                         </div>
 
-                        <!-- Google Pay Option -->
-                        <div class="payment-app-row-card" id="card-gpay" onclick="selectPaymentMethod('gpay')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <input type="radio" name="payment-option" id="radio-gpay" style="width: 18px; height: 18px; accent-color: var(--accent);">
-                                <img src="Image/google-pay-logo.svg" alt="Google Pay" style="height: 20px; width: auto; object-fit: contain;">
-                                <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">Google Pay</span>
-                            </div>
-                        </div>
-
-                    </div>
+                        
                 </div>
 
                 <!-- Price Details Block (Matches screenshot block) -->
@@ -475,22 +466,20 @@
                     const isMobile = isMobileUA || isSmallScreen;
 
                     if (isMobile) {
-                        if (selectedPaymentMethod === 'scanpay' || selectedPaymentMethod === 'phonepe' || selectedPaymentMethod === 'gpay') {
+                        if (selectedPaymentMethod === 'scanpay') {
                             window.location.href = result.redirectUrl;
                             return;
                         }
                         let resolvedUpiId = upiId;
                         let resolvedPayeeName = payeeName;
                         
-                        // Clean up name if it contains a client ID instead of a valid name
                         if (/^SU\d+/i.test(resolvedPayeeName) || resolvedPayeeName === 'SU2605131450590093051231') {
-                            resolvedPayeeName = 'Bhalani Nandlal Madhavajibhai ';
+                            resolvedPayeeName = 'Paytm';
                         }
                         const isAndroid = /Android/i.test(navigator.userAgent);
                         const cleanAmount = total.toFixed(2);
-                        const baseUpiUri = `upi://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                         
-                        let appUri = baseUpiUri;
+                        let appUri = `upi://pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                         
                         if (selectedPaymentMethod === 'phonepe') {
                             const phonepePayload = {
@@ -510,60 +499,22 @@
                             appUri = isAndroid 
                                 ? `intent://cash_wallet?pa=${encodeURIComponent(resolvedUpiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer#Intent;scheme=paytmmp;package=net.one97.paytm;end`
                                 : `paytmmp://cash_wallet?pa=${encodeURIComponent(resolvedUpiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
-                        } else if (selectedPaymentMethod === 'gpay') {
-                            const tr = "T" + Math.floor(Math.random() * 1000000000);
-                            appUri = isAndroid 
-                                ? `intent://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                : `tez://upi/pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931`;
-                        } else if (selectedPaymentMethod === 'bhim') {
-                            appUri = isAndroid 
-                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=bhim;package=in.org.npci.upiapp;end`
-                                : `bhim://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
-                        } else if (selectedPaymentMethod === 'amazonpay') {
-                            appUri = isAndroid 
-                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=amazon;package=com.amazon.mShop.android.shopping;end`
-                                : `amazon://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
-                        } else if (selectedPaymentMethod === 'mobikwik') {
-                            appUri = isAndroid 
-                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=mobikwik;package=com.mobikwik_new;end`
-                                : `mobikwik://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
-                        } else if (selectedPaymentMethod === 'cred') {
-                            appUri = isAndroid 
-                                ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=cred;package=com.dreamplug.androidapp;end`
-                                : `cred://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
                         }
-
-                        // Function to try launching app and fallback to payment.html if app is not present
-                        const launchAppWithFallback = (uri, fallbackUrl) => {
-                            let appOpened = false;
+                        
+                        const launchAppWithFallback = (uri) => {
+                            const targetConfirmationUrl = `order-confirmation.html?orderId=${encodeURIComponent(orderId)}&launchMethod=${encodeURIComponent(selectedPaymentMethod)}&upi=${encodeURIComponent(resolvedUpiId)}&name=${encodeURIComponent(resolvedPayeeName)}`;
                             
-                            // Monitor if browser goes to background (app opened successfully)
-                            const handleVisibilityChange = () => {
-                                if (document.hidden) {
-                                    appOpened = true;
-                                    // If app opened successfully, redirect browser to order-confirmation page
-                                    setTimeout(() => {
-                                        window.location.replace(`order-confirmation.html?orderId=${encodeURIComponent(orderId)}&v=2.7`);
-                                    }, 1000);
-                                    document.removeEventListener('visibilitychange', handleVisibilityChange);
-                                }
-                            };
-                            document.addEventListener('visibilitychange', handleVisibilityChange);
-
-                            // Set fallback timer (1.8 seconds) to redirect to payment.html if app did not open
-                            setTimeout(() => {
-                                document.removeEventListener('visibilitychange', handleVisibilityChange);
-                                if (!appOpened) {
-                                    console.log("[DeepLink] App did not open. Redirecting to payment.html fallback.");
-                                    window.location.replace(fallbackUrl);
-                                }
-                            }, 1800);
-
-                            // Attempt to launch deep link
+                            // Try opening native application directly
                             window.location.href = uri;
+                            
+                            // Auto fallback redirect directly to confirmation page after 1.5 seconds (so mobile doesn't get stuck)
+                            setTimeout(() => {
+                                window.location.replace(targetConfirmationUrl);
+                            }, 1500);
                         };
 
-                        launchAppWithFallback(appUri, result.redirectUrl);
+                        launchAppWithFallback(appUri);
+                    }
                     } else {
                         // Desktop: Redirect to payment.html for QR code scanning
                         window.location.href = result.redirectUrl;

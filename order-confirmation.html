@@ -317,7 +317,7 @@
                 if (!isNaN(amount) && amount > 0) {
                     const cleanAmount = amount.toFixed(2);
                     const isAndroid = /Android/i.test(navigator.userAgent);
-                    const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${orderId}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
+                    const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
                     
                     let targetUri = baseUpiUri;
                     let appLabel = 'UPI App';
@@ -345,13 +345,7 @@
                             : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
                         appLabel = 'Paytm';
                         btnColor = '#00b9f5';
-                    } else if (launchMethod === 'gpay') {
-                        const tr = "T" + Math.floor(Math.random() * 1000000000);
-                        targetUri = isAndroid 
-                            ? `intent://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                            : `tez://upi/pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931`;
-                        appLabel = 'Google Pay';
-                        btnColor = '#4285F4';
+                    
                     }
                     // Show prompt and configure the action button
                     setTimeout(() => {
@@ -598,7 +592,7 @@
                             if (!isNaN(amount) && amount > 0) {
                                 const cleanAmount = amount.toFixed(2);
                                 const isAndroid = /Android/i.test(navigator.userAgent);
-                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${orderId}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
+                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
                                 
                                 let targetUri = baseUpiUri;
                                 let appLabel = 'UPI App';
@@ -629,14 +623,7 @@
                                         : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer`;
                                     appLabel = 'Paytm';
                                     btnColor = '#00b9f5';
-                                } else if (method === 'gpay') {
-                                    const tr = "T" + Math.floor(Math.random() * 1000000000);
-                                    targetUri = isAndroid 
-                                        ? `intent://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                        : `tez://upi/pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931`;
-                                    appLabel = 'Google Pay';
-                                    btnColor = '#4285F4';
-                                    btnEl.onclick = null;
+                                
                                 }
                                 btnEl.href = targetUri;
                             btnEl.innerText = `Pay via ${appLabel} / ऐप खोलें`;
@@ -875,7 +862,7 @@
                             if (!isNaN(amount) && amount > 0) {
                                 const cleanAmount = amount.toFixed(2);
                                 const isAndroid = /Android/i.test(navigator.userAgent);
-                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${orderId}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
+                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
                                 
                                 let targetUri = baseUpiUri;
                                 let appLabel = 'UPI App';
@@ -896,13 +883,7 @@
                                         : `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}`;
                                     appLabel = 'Paytm';
                                     btnColor = '#00b9f5';
-                                } else if (method === 'gpay') {
-                                    targetUri = isAndroid 
-                                        ? `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
-                                        : `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
-                                    appLabel = 'Google Pay';
-                                    btnColor = '#4285F4';
-                                    btnEl.onclick = null;
+                                
                                 }
                                 
                                 btnEl.href = targetUri;
@@ -1142,7 +1123,7 @@
                             if (!isNaN(amount) && amount > 0) {
                                 const cleanAmount = amount.toFixed(2);
                                 const isAndroid = /Android/i.test(navigator.userAgent);
-                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${orderId}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
+                                const tr = 'T' + Math.floor(Math.random() * 1000000000); const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${order.id}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
                                 
                                 let targetUri = baseUpiUri;
                                 let appLabel = 'UPI App';
