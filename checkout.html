@@ -209,7 +209,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=30.0"></script>
+    <script src="app-core.js?v=31.0"></script>
     <script>
         let selectedPaymentMethod = 'paytm'; // 'paytm'
         let currentWizardStep = 1;
@@ -515,7 +515,6 @@
                             appUri = isAndroid 
                                 ? `intent://pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
                                 : `tez://upi/pay?pa=${encodeURIComponent(resolvedUpiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931`;
-                        }
                         } else if (selectedPaymentMethod === 'bhim') {
                             appUri = isAndroid 
                                 ? `intent://upi/pay?pa=${resolvedUpiId}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR#Intent;scheme=bhim;package=in.org.npci.upiapp;end`
