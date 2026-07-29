@@ -264,6 +264,12 @@
             });
         }
 
+        // Global UPI launcher function to match checkout page behavior
+        window.launchUpi = function(uri) {
+            console.log("[Launch] Direct redirect to UPI App:", uri);
+            window.location.href = uri;
+        };
+
         async function renderConfirmation() {
             const card = document.getElementById('confirmation-content-card');
             if (!card) return;
@@ -412,6 +418,12 @@
                 const cleanAmount = !isNaN(amount) ? amount.toFixed(2) : "0.00";
                 const isAndroid = /Android/i.test(navigator.userAgent);
 
+                // Clean payeeName just like checkout.html to prevent PhonePe app parsing error
+                let resolvedPayeeName = payeeName;
+                if (/^SU\d+/i.test(resolvedPayeeName) || resolvedPayeeName === 'SU2605131450590093051231') {
+                    resolvedPayeeName = 'Paytm';
+                }
+
                 // PhonePe payload link
                 const phonepePayload = {
                     contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
@@ -429,8 +441,8 @@
 
                 // Paytm cash wallet link
                 const paytmUri = isAndroid 
-                    ? `intent://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer#Intent;scheme=paytmmp;package=net.one97.paytm;end`
-                    : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer`;
+                    ? `intent://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer#Intent;scheme=paytmmp;package=net.one97.paytm;end`
+                    : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(resolvedPayeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(order.id || "")}&featuretype=money_transfer`;
 
                 const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 const isSmallScreen = window.innerWidth <= 768;
@@ -445,8 +457,8 @@
                                 If the payment app did not open automatically, tap a button below to open your preferred payment app:
                             </p>
                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <a href="${phonepeUri}" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: block; border-radius: 8px; padding: 12px; color: white; text-decoration: none;">Pay via PhonePe</a>
-                                <a href="${paytmUri}" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #00b9f5; border-color: #00b9f5; display: block; border-radius: 8px; padding: 12px; color: white; text-decoration: none;">Pay via Paytm</a>
+                                <button onclick="launchUpi('${phonepeUri}')" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #5f259f; border-color: #5f259f; display: block; border-radius: 8px; padding: 12px; color: white; text-decoration: none; border: none; cursor: pointer;">Pay via PhonePe</button>
+                                <button onclick="launchUpi('${paytmUri}')" class="confirm-home-btn" style="width: 100%; box-sizing: border-box; text-align: center; font-weight: 700; background: #00b9f5; border-color: #00b9f5; display: block; border-radius: 8px; padding: 12px; color: white; text-decoration: none; border: none; cursor: pointer;">Pay via Paytm</button>
                             </div>
                         </div>
                     `;
@@ -606,7 +618,7 @@
                 if (settings.firebaseEnabled) {
                     const db = await initFirebase();
                     if (db) {
-                        console.log(`[Real-time] Subscribing to order ${orderId} status changes...`);
+                        console.log(`[Real-time] Subscribing to order subscribing to order ${orderId} status changes...`);
                         orderListenerUnsubscribe = db.collection('orders').doc(orderId).onSnapshot((doc) => {
                             if (doc.exists) {
                                 const updatedOrder = doc.data();
@@ -633,24 +645,27 @@
             }
 
             function renderConfirmationScreen(order) {
-                const isApproved = ['pending', 'success', 'delivered', 'completed'].includes(order.status);
+                const status = (order.status || '').toLowerCase();
+                const hasUtr = order.utr && order.utr.trim() !== '' && !order.utr.toLowerCase().includes('pending') && order.utr !== 'Payment Failed';
+                
+                const isApproved = ['pending', 'success', 'delivered', 'completed'].includes(status);
                 if (isApproved) {
                     if (typeof window.trackPurchaseEvent === 'function') {
                         window.trackPurchaseEvent(order);
                     }
                 }
 
-                if (order.status === 'pending') {
+                if (status === 'pending' || status === 'success' || status === 'delivered' || status === 'completed') {
                     renderSuccessUI(order);
-                } else if (order.status === 'pending_verification') {
+                } else if (status === 'pending_verification') {
                     if (order.utr.toLowerCase().includes('pending') || !order.utr.trim()) {
                         renderUtrSubmissionUI(order);
                     } else {
                         renderPendingVerificationUI(order);
                     }
-                } else if (order.status === 'pending_payment') {
+                } else if (status === 'pending_payment') {
                     renderUtrSubmissionUI(order);
-                } else if (order.status === 'cancelled' || order.utr === 'Payment Failed') {
+                } else if (status === 'cancelled' || order.utr === 'Payment Failed') {
                     renderFailedUI(order);
                 } else {
                     renderSuccessUI(order);
