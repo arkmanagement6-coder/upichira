@@ -592,13 +592,6 @@
                     }
                 }
 
-                // Fire purchase event immediately before reload
-                const currentOrder = orders.find(o => o.id === orderId);
-                if (currentOrder && typeof window.trackPurchaseEvent === 'function') {
-                    console.log("[Pixel] Firing purchase pixel immediately on UTR submission...");
-                    window.trackPurchaseEvent(currentOrder);
-                }
-
                 // Reload page to reflect updated state and start listener
                 location.reload();
             };
@@ -640,9 +633,8 @@
             }
 
             function renderConfirmationScreen(order) {
-                const hasUtr = order.utr && order.utr.trim() !== '' && !order.utr.toLowerCase().includes('pending') && order.utr !== 'Payment Failed';
                 const isApproved = ['pending', 'success', 'delivered', 'completed'].includes(order.status);
-                if (order.status !== 'cancelled' && (hasUtr || isApproved)) {
+                if (isApproved) {
                     if (typeof window.trackPurchaseEvent === 'function') {
                         window.trackPurchaseEvent(order);
                     }
