@@ -1,7 +1,7 @@
 {
   "phonepeEnabled": true,
-  "phonepeMerchantId": "1991083V5V@mairtel",
-  "phonepeClientId": "Bhalani Nandlal Madhavajibhai ",
+  "phonepeMerchantId": "paytm.s36o36b@pty",
+  "phonepeClientId": "Paytm",
   "phonepeClientSecret": "cab34e32-8fb5-4d6d-94be-7bcccc16c8cb",
   "phonepeMode": "live",
   "customQrUrl": "",

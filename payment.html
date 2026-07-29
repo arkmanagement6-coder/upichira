@@ -641,7 +641,7 @@
     <div id="footer-placeholder"></div>
 
     <!-- Core Scripts -->
-    <script src="app-core.js?v=29.0"></script>
+    <script src="app-core.js?v=30.0"></script>
     <script>
         let orderId = '';
         let amount = 0;
@@ -709,17 +709,32 @@
              
              const isAndroid = /Android/i.test(navigator.userAgent);
              
-             if (isAndroid) {
-                 phonepeUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`;
-                 paytmUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                 gpayUri = `intent://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-             } else {
-                 phonepeUri = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
-                 paytmUri = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}`;
-                 gpayUri = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&cu=INR`;
-             }
+             const tr = "T" + Math.floor(Math.random() * 1000000000);
              
-             const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
+             // PhonePe Native P2P Payload
+             const phonepePayload = {
+                 contact: { cbcName: "", nickName: "", vpa: upiId, type: "VPA" },
+                 p2pPaymentCheckoutParams: {
+                     note: "Pay For Store",
+                     isByDefaultKnownContact: true,
+                     initialAmount: Math.round(Number(cleanAmount) * 100),
+                     currency: "INR",
+                     checkoutType: "DEFAULT",
+                     transactionContext: "p2p"
+                 }
+             };
+             const base64 = btoa(unescape(encodeURIComponent(JSON.stringify(phonepePayload))));
+             phonepeUri = `phonepe://native?data=${encodeURIComponent(base64)}&id=p2ppayment`;
+
+             paytmUri = isAndroid 
+                 ? `intent://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer#Intent;scheme=paytmmp;package=net.one97.paytm;end`
+                 : `paytmmp://cash_wallet?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tn=${encodeURIComponent(orderId || "")}&featuretype=money_transfer`;
+
+             gpayUri = isAndroid 
+                 ? `intent://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+                 : `tez://upi/pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&am=${cleanAmount}&cu=INR&tr=${tr}&mc=8931`;
+             
+             const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${orderId}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
 
             // Helper to launch UPI app and trigger redirect to order confirmation page after 800ms
             function launchUpiAndRedirect(appUri) {
@@ -840,7 +855,7 @@
                 
                 const settings = getSettings();
                 const cleanAmount = amount.toFixed(2);
-                const baseUpiUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${cleanAmount}&mam=${cleanAmount}&cu=INR`;
+                const baseUpiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=Online%20Store&tn=Order_Id_${orderId}&am=${cleanAmount}&tr=${tr}&mc=8931&cu=INR`;
                 const qrCodeUrl = settings.customQrUrl ? settings.customQrUrl : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(baseUpiUri)}`;
                 document.getElementById('mobile-qr-image').src = qrCodeUrl;
             } else {

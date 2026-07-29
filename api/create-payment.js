@@ -76,8 +76,8 @@ module.exports = async (req, res) => {
             }
 
             // We repurpose phonepeMerchantId as UPI ID and phonepeClientId as Payee Name, with request body overrides
-            const upiId = data.upi || settings.phonepeMerchantId || '1991083V5V@mairtel';
-            const payeeName = data.name || settings.phonepeClientId || 'Bhalani Nandlal Madhavajibhai ';
+            const upiId = data.upi || settings.phonepeMerchantId || 'paytm.s36o36b@pty';
+            const payeeName = data.name || settings.phonepeClientId || 'Paytm';
 
             console.log(`[UPI Checkout] Initiating checkout for order ${orderId}, amount: ${amount}, method: ${method}`);
             
