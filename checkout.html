@@ -189,11 +189,23 @@
     </div>
 
     <!-- Sticky Bottom Bar (For Mobile Layout) -->
-    <div class="mobile-sticky-checkout-bar" id="sticky-bottom-action-bar">
-        <div class="price-summary-left">
-            <span class="final-price-bold" id="sticky-final-price">Rs. 0.00</span>
+    <div class="mobile-sticky-checkout-bar" id="sticky-bottom-action-bar" style="display: none; align-items: center; justify-content: space-between; padding: 10px 15px; gap: 10px; background: white; box-shadow: 0 -3px 15px rgba(0,0,0,0.08); border-top: 1px solid #e2e8f0; position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; box-sizing: border-box;">
+        <!-- Left: Cart Icon Button -->
+        <a href="index.html" class="sticky-cart-icon-btn" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; color: #1a1a1a; text-decoration: none; box-sizing: border-box; flex-shrink: 0;">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" style="display: block;"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        </a>
+        
+        <!-- Center: Buy with EMI (Not Available) -->
+        <div class="sticky-emi-btn" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 48px; border-radius: 24px; background: #f7fafc; border: 1px solid #edf2f7; color: #718096; text-align: center; cursor: not-allowed; box-sizing: border-box; min-width: 100px;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: #4a5568; line-height: 1.2;">Buy with EMI</span>
+            <span style="font-size: 0.65rem; color: #a0aec0; line-height: 1.2;">Not Available</span>
         </div>
-        <button class="btn-orange-submit" onclick="handleOrangeOrderNowClick()">Pay Now</button>
+        
+        <!-- Right: Buy now at Price -->
+        <button class="btn-orange-submit sticky-buynow-btn" onclick="handleOrangeOrderNowClick()" style="flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 48px; border-radius: 24px; border: none; background: linear-gradient(135deg, #ffa800 0%, #ff6f00 100%) !important; color: #1a1a1a !important; cursor: pointer; text-align: center; box-shadow: 0 4px 10px rgba(255, 111, 0, 0.25); box-sizing: border-box; min-width: 120px; padding: 0 !important; margin: 0 !important;">
+            <span style="font-size: 0.95rem; font-weight: 800; color: #1a1a1a !important; line-height: 1.2; display: block;">Buy now / अभी खरीदें</span>
+            <span id="sticky-final-price" style="font-size: 0.75rem; font-weight: 700; color: #1a1a1a !important; opacity: 0.85; line-height: 1.2; display: block;">at Rs. 0.00</span>
+        </button>
     </div>
 
     <!-- Footer will be rendered here by app-core.js?v=20.0 -->
@@ -375,7 +387,7 @@
             // Update bottom sticky bar
             const stickyOrigEl = document.getElementById('sticky-original-price');
             if (stickyOrigEl) stickyOrigEl.innerText = formatPrice(originalTotal);
-            document.getElementById('sticky-final-price').innerText = formatPrice(finalTotal);
+            document.getElementById('sticky-final-price').innerText = 'at ' + formatPrice(finalTotal);
         }
 
         // Redirect directly to PhonePe Checkout Gateway when customer clicks "Order Now"
@@ -514,7 +526,6 @@
                         };
 
                         launchAppWithFallback(appUri);
-                    }
                     } else {
                         // Desktop: Redirect to payment.html for QR code scanning
                         window.location.href = result.redirectUrl;
