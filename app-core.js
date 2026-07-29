@@ -135,29 +135,7 @@ window.trackPurchaseEvent = function(order) {
 };
 
 const INITIAL_PRODUCTS = [
-  {
-    "id": "8270415000000_demo",
-    "paymentLink": "https://rzp.io/rzp/tHlmofq",
-    "category": "gadgets",
-    "price": "Rs. 1.00",
-    "badge": "DEMO",
-    "title": "1 Rupee Demo Product / 1 रुपये टेस्ट प्रोडक्ट",
-    "image": "Image/Apple iPad Air 11″ (M2) Liquid Retina Display, 256GB, Landscape 12MP Front Camera  12MP Back Camera, Wi-Fi 6E, Touch ID, All-Day Battery Life-Gray/11_0ea24f3d-9bcd-4e5f-a894-b4f66903a3c8_679x679.webp",
-    "images": [
-      "Image/Apple iPad Air 11″ (M2) Liquid Retina Display, 256GB, Landscape 12MP Front Camera  12MP Back Camera, Wi-Fi 6E, Touch ID, All-Day Battery Life-Gray/11_0ea24f3d-9bcd-4e5f-a894-b4f66903a3c8_679x679.webp"
-    ],
-    "url": "/products/1-rupee-demo-product",
-    "stockStatus": "in-stock",
-    "handle": "1-rupee-demo-product",
-    "comparePrice": "Rs. 99.00",
-    "specs": [
-      {
-        "name": "Type",
-        "value": "Test Product"
-      }
-    ],
-    "description": "<p>This is a 1 Rupee demo product for testing the UPI gateway payment flow.</p>"
-  },
+
   {
     "id": "8270415000000",
     "paymentLink": "https://rzp.io/rzp/tHlmofq",
@@ -1253,32 +1231,7 @@ async function syncProductsBackground(forceSync = false) {
                     };
                 });
 
-                // Auto-inject Rs. 1 Demo Product if not present
-                if (products && products.length > 0 && !products.some(p => String(p.id) === '8270415000000_demo')) {
-                    products.unshift({
-                        id: "8270415000000_demo",
-                        paymentLink: "https://rzp.io/rzp/tHlmofq",
-                        category: "gadgets",
-                        price: "Rs. 1.00",
-                        badge: "DEMO",
-                        title: "1 Rupee Demo Product / 1 रुपये टेस्ट प्रोडक्ट",
-                        image: "Image/Apple iPad Air 11″ (M2) Liquid Retina Display, 256GB, Landscape 12MP Front Camera  12MP Back Camera, Wi-Fi 6E, Touch ID, All-Day Battery Life-Gray/11_0ea24f3d-9bcd-4e5f-a894-b4f66903a3c8_679x679.webp",
-                        images: [
-                            "Image/Apple iPad Air 11″ (M2) Liquid Retina Display, 256GB, Landscape 12MP Front Camera  12MP Back Camera, Wi-Fi 6E, Touch ID, All-Day Battery Life-Gray/11_0ea24f3d-9bcd-4e5f-a894-b4f66903a3c8_679x679.webp"
-                        ],
-                        url: "/products/1-rupee-demo-product",
-                        stockStatus: "in-stock",
-                        handle: "1-rupee-demo-product",
-                        comparePrice: "Rs. 99.00",
-                        specs: [
-                            {
-                                name: "Type",
-                                value: "Test Product"
-                            }
-                        ],
-                        description: "<p>This is a 1 Rupee demo product for testing the UPI gateway payment flow.</p>"
-                    });
-                }
+
 
                 const oldProductsStr = localStorage.getItem('ikko_products');
                 const newProductsStr = JSON.stringify(products);
@@ -1326,32 +1279,7 @@ async function syncProductsBackground(forceSync = false) {
         });
 
 
-        // Auto-inject Rs. 1 Demo Product if not present
-        if (products && products.length > 0 && !products.some(p => String(p.id) === '8270415000000_demo')) {
-            products.unshift({
-                id: "8270415000000_demo",
-                paymentLink: "https://rzp.io/rzp/tHlmofq",
-                category: "gadgets",
-                price: "Rs. 1.00",
-                badge: "DEMO",
-                title: "1 Rupee Demo Product / 1 रुपये टेस्ट प्रोडक्ट",
-                image: "Image/Apple iPad Air 11″ (M2) Liquid Retina Display, 256GB, Landscape 12MP Front Camera  12MP Back Camera, Wi-Fi 6E, Touch ID, All-Day Battery Life-Gray/11_0ea24f3d-9bcd-4e5f-a894-b4f66903a3c8_679x679.webp",
-                images: [
-                    "Image/Apple iPad Air 11″ (M2) Liquid Retina Display, 256GB, Landscape 12MP Front Camera  12MP Back Camera, Wi-Fi 6E, Touch ID, All-Day Battery Life-Gray/11_0ea24f3d-9bcd-4e5f-a894-b4f66903a3c8_679x679.webp"
-                ],
-                url: "/products/1-rupee-demo-product",
-                stockStatus: "in-stock",
-                handle: "1-rupee-demo-product",
-                comparePrice: "Rs. 99.00",
-                specs: [
-                    {
-                        name: "Type",
-                        value: "Test Product"
-                    }
-                ],
-                description: "<p>This is a 1 Rupee demo product for testing the UPI gateway payment flow.</p>"
-            });
-        }
+
 
         if (!products || products.length === 0) {
             products = [...INITIAL_PRODUCTS];
